@@ -1,0 +1,63 @@
+{
+    "industrialBuildings": [
+      {
+        "id": "factory_01",
+        "name": "Modern Manufacturing Plant",
+        "type": "Heavy Industry",
+        "modelFile": "models/industrial/factory_01.glb",
+        "thumbnail": "thumbnails/industrial/factory_01.png",
+        "footprint": {
+          "width": 4,
+          "length": 6
+        },
+        "levels": 2,
+        "capacity": 200,
+        "cost": 5000000,
+        "maintenanceCost": 50000,
+        "energyConsumption": 10000,
+        "jobsProvided": 200,
+        "pollutionLevel": 8,
+        "productionType": "Consumer Goods",
+        "productionRate": 1000
+      },
+      {
+        "id": "warehouse_01",
+        "name": "Large Logistics Warehouse",
+        "type": "Light Industry",
+        "modelFile": "models/industrial/warehouse_01.glb",
+        "thumbnail": "thumbnails/industrial/warehouse_01.png",
+        "footprint": {
+          "width": 5,
+          "length": 5
+        },
+        "levels": 1,
+        "capacity": 50,
+        "cost": 2000000,
+        "maintenanceCost": 20000,
+        "energyConsumption": 5000,
+        "jobsProvided": 50,
+        "pollutionLevel": 3,
+        "storageCapacity": 10000
+      },
+      {
+        "id": "hightech_lab_01",
+        "name": "High-Tech Research Facility",
+        "type": "Specialized Industry",
+        "modelFile": "models/industrial/hightech_lab_01.glb",
+        "thumbnail": "thumbnails/industrial/hightech_lab_01.png",
+        "footprint": {
+          "width": 3,
+          "length": 3
+        },
+        "levels": 3,
+        "capacity": 100,
+        "cost": 8000000,
+        "maintenanceCost": 80000,
+        "energyConsumption": 8000,
+        "jobsProvided": 100,
+        "pollutionLevel": 2,
+        "researchBonus": 10,
+        "specialFeatures": ["Advanced Laboratories", "Clean Energy Systems"]
+      }
+    ]
+  }

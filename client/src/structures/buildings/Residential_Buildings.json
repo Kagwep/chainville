@@ -1,0 +1,49 @@
+{
+    "residentialBuildings": [
+      {
+        "id": "apartment_complex_01",
+        "name": "Modern Apartment Complex",
+        "type": "High-density Residential",
+        "modelFile": "models/residential/apartment_complex_01.glb",
+        "thumbnail": "thumbnails/residential/apartment_complex_01.png",
+        "footprint": {
+          "width": 4,
+          "length": 4
+        },
+        "levels": 5,
+        "capacity": 50,
+        "cost": 500000,
+        "maintenanceCost": 5000
+      },
+      {
+        "id": "suburban_house_01",
+        "name": "Suburban Family Home",
+        "type": "Low-density Residential",
+        "modelFile": "models/residential/suburban_house_01.glb",
+        "thumbnail": "thumbnails/residential/suburban_house_01.png",
+        "footprint": {
+          "width": 2,
+          "length": 2
+        },
+        "levels": 2,
+        "capacity": 4,
+        "cost": 250000,
+        "maintenanceCost": 2000
+      },
+      {
+        "id": "townhouse_01",
+        "name": "Urban Townhouse",
+        "type": "Medium-density Residential",
+        "modelFile": "models/residential/townhouse_01.glb",
+        "thumbnail": "thumbnails/residential/townhouse_01.png",
+        "footprint": {
+          "width": 1,
+          "length": 2
+        },
+        "levels": 3,
+        "capacity": 6,
+        "cost": 300000,
+        "maintenanceCost": 2500
+      }
+    ]
+  }

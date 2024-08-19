@@ -1,0 +1,86 @@
+{
+    "waterInfrastructure": [
+      {
+        "id": "water_tower_01",
+        "name": "Water Tower",
+        "type": "Storage",
+        "modelFile": "models/water/water_tower_01.glb",
+        "thumbnail": "thumbnails/water/water_tower_01.png",
+        "footprint": {
+          "width": 2,
+          "length": 2
+        },
+        "height": 30,
+        "cost": 500000,
+        "maintenanceCost": 5000,
+        "energyConsumption": 500,
+        "capacity": 1000000,
+        "supplyRate": 10000,
+        "pressureBoost": 5
+      },
+      {
+        "id": "water_treatment_plant_01",
+        "name": "Water Treatment Plant",
+        "type": "Treatment",
+        "modelFile": "models/water/water_treatment_plant_01.glb",
+        "thumbnail": "thumbnails/water/water_treatment_plant_01.png",
+        "footprint": {
+          "width": 4,
+          "length": 6
+        },
+        "cost": 2000000,
+        "maintenanceCost": 20000,
+        "energyConsumption": 5000,
+        "capacity": 5000000,
+        "treatmentRate": 100000,
+        "pollutionReduction": 80,
+        "jobsProvided": 50
+      },
+      {
+        "id": "water_pump_station_01",
+        "name": "Water Pump Station",
+        "type": "Supply",
+        "modelFile": "models/water/water_pump_station_01.glb",
+        "thumbnail": "thumbnails/water/water_pump_station_01.png",
+        "footprint": {
+          "width": 3,
+          "length": 3
+        },
+        "cost": 1000000,
+        "maintenanceCost": 10000,
+        "energyConsumption": 2000,
+        "pumpingCapacity": 200000,
+        "pressureBoost": 10,
+        "jobsProvided": 20
+      },
+      {
+        "id": "desalination_plant_01",
+        "name": "Desalination Plant",
+        "type": "Specialized",
+        "modelFile": "models/water/desalination_plant_01.glb",
+        "thumbnail": "thumbnails/water/desalination_plant_01.png",
+        "footprint": {
+          "width": 5,
+          "length": 7
+        },
+        "cost": 5000000,
+        "maintenanceCost": 50000,
+        "energyConsumption": 10000,
+        "productionRate": 300000,
+        "saltProduction": 5000,
+        "coastalOnly": true,
+        "jobsProvided": 100
+      },
+      {
+        "id": "water_pipe_01",
+        "name": "Water Pipe",
+        "type": "Distribution",
+        "modelFile": "models/water/water_pipe_01.glb",
+        "thumbnail": "thumbnails/water/water_pipe_01.png",
+        "cost": 100,
+        "maintenanceCost": 1,
+        "flowRate": 1000,
+        "leakageRate": 0.01
+      }
+    ]
+  }

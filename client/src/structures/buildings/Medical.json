@@ -1,0 +1,67 @@
+{
+    "medicalBuildings": [
+      {
+        "id": "hospital_01",
+        "name": "General Hospital",
+        "type": "Large Medical Facility",
+        "modelFile": "models/medical/hospital_01.glb",
+        "thumbnail": "thumbnails/medical/hospital_01.png",
+        "footprint": {
+          "width": 5,
+          "length": 5
+        },
+        "levels": 5,
+        "capacity": 500,
+        "cost": 10000000,
+        "maintenanceCost": 100000,
+        "energyConsumption": 8000,
+        "jobsProvided": 300,
+        "treatmentCapacity": 1000,
+        "emergencyResponseTime": 5,
+        "specialties": ["Surgery", "Intensive Care", "Pediatrics"],
+        "researchBonus": 5
+      },
+      {
+        "id": "clinic_01",
+        "name": "Local Clinic",
+        "type": "Small Medical Facility",
+        "modelFile": "models/medical/clinic_01.glb",
+        "thumbnail": "thumbnails/medical/clinic_01.png",
+        "footprint": {
+          "width": 2,
+          "length": 2
+        },
+        "levels": 2,
+        "capacity": 50,
+        "cost": 1000000,
+        "maintenanceCost": 10000,
+        "energyConsumption": 2000,
+        "jobsProvided": 30,
+        "treatmentCapacity": 100,
+        "emergencyResponseTime": 10,
+        "specialties": ["General Practice", "Minor Emergency"]
+      },
+      {
+        "id": "research_hospital_01",
+        "name": "Medical Research Center",
+        "type": "Specialized Medical Facility",
+        "modelFile": "models/medical/research_hospital_01.glb",
+        "thumbnail": "thumbnails/medical/research_hospital_01.png",
+        "footprint": {
+          "width": 4,
+          "length": 4
+        },
+        "levels": 6,
+        "capacity": 300,
+        "cost": 15000000,
+        "maintenanceCost": 150000,
+        "energyConsumption": 10000,
+        "jobsProvided": 250,
+        "treatmentCapacity": 500,
+        "emergencyResponseTime": 7,
+        "specialties": ["Oncology", "Neurology", "Rare Diseases"],
+        "researchBonus": 15,
+        "educationBonus": 10
+      }
+    ]
+  }

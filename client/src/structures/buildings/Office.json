@@ -1,0 +1,56 @@
+{
+    "officeBuildings": [
+      {
+        "id": "skyscraper_01",
+        "name": "Modern Skyscraper",
+        "type": "High-rise Office",
+        "modelFile": "models/office/skyscraper_01.glb",
+        "thumbnail": "thumbnails/office/skyscraper_01.png",
+        "footprint": {
+          "width": 3,
+          "length": 3
+        },
+        "levels": 40,
+        "capacity": 2000,
+        "cost": 10000000,
+        "maintenanceCost": 100000,
+        "energyConsumption": 5000,
+        "jobsProvided": 2000
+      },
+      {
+        "id": "office_park_01",
+        "name": "Suburban Office Park",
+        "type": "Low-rise Office",
+        "modelFile": "models/office/office_park_01.glb",
+        "thumbnail": "thumbnails/office/office_park_01.png",
+        "footprint": {
+          "width": 4,
+          "length": 4
+        },
+        "levels": 3,
+        "capacity": 500,
+        "cost": 2000000,
+        "maintenanceCost": 20000,
+        "energyConsumption": 1000,
+        "jobsProvided": 500
+      },
+      {
+        "id": "tech_campus_01",
+        "name": "Tech Company Campus",
+        "type": "Specialized Office",
+        "modelFile": "models/office/tech_campus_01.glb",
+        "thumbnail": "thumbnails/office/tech_campus_01.png",
+        "footprint": {
+          "width": 5,
+          "length": 5
+        },
+        "levels": 4,
+        "capacity": 1000,
+        "cost": 5000000,
+        "maintenanceCost": 50000,
+        "energyConsumption": 3000,
+        "jobsProvided": 1000,
+        "specialFeatures": ["Research Lab", "Green Spaces"]
+      }
+    ]
+  }

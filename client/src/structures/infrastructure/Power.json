@@ -1,0 +1,123 @@
+{
+    "powerInfrastructure": [
+      {
+        "id": "coal_power_plant_01",
+        "name": "Coal Power Plant",
+        "type": "Fossil Fuel",
+        "modelFile": "models/power/coal_power_plant_01.glb",
+        "thumbnail": "thumbnails/power/coal_power_plant_01.png",
+        "footprint": {
+          "width": 6,
+          "length": 8
+        },
+        "cost": 10000000,
+        "maintenanceCost": 100000,
+        "fuelConsumption": 1000,
+        "powerOutput": 500000,
+        "pollutionRate": 100,
+        "jobsProvided": 200,
+        "reliability": 0.95
+      },
+      {
+        "id": "solar_farm_01",
+        "name": "Solar Farm",
+        "type": "Renewable",
+        "modelFile": "models/power/solar_farm_01.glb",
+        "thumbnail": "thumbnails/power/solar_farm_01.png",
+        "footprint": {
+          "width": 10,
+          "length": 10
+        },
+        "cost": 5000000,
+        "maintenanceCost": 20000,
+        "powerOutput": 100000,
+        "pollutionRate": 0,
+        "jobsProvided": 50,
+        "reliability": 0.7,
+        "weatherDependent": true
+      },
+      {
+        "id": "wind_turbine_01",
+        "name": "Wind Turbine",
+        "type": "Renewable",
+        "modelFile": "models/power/wind_turbine_01.glb",
+        "thumbnail": "thumbnails/power/wind_turbine_01.png",
+        "footprint": {
+          "width": 2,
+          "length": 2
+        },
+        "height": 100,
+        "cost": 1000000,
+        "maintenanceCost": 10000,
+        "powerOutput": 20000,
+        "pollutionRate": 0,
+        "jobsProvided": 10,
+        "reliability": 0.8,
+        "weatherDependent": true
+      },
+      {
+        "id": "nuclear_plant_01",
+        "name": "Nuclear Power Plant",
+        "type": "Nuclear",
+        "modelFile": "models/power/nuclear_plant_01.glb",
+        "thumbnail": "thumbnails/power/nuclear_plant_01.png",
+        "footprint": {
+          "width": 8,
+          "length": 10
+        },
+        "cost": 20000000,
+        "maintenanceCost": 200000,
+        "fuelConsumption": 100,
+        "powerOutput": 1000000,
+        "pollutionRate": 10,
+        "jobsProvided": 300,
+        "reliability": 0.99,
+        "safetyRisk": 0.01
+      },
+      {
+        "id": "power_substation_01",
+        "name": "Power Substation",
+        "type": "Distribution",
+        "modelFile": "models/power/power_substation_01.glb",
+        "thumbnail": "thumbnails/power/power_substation_01.png",
+        "footprint": {
+          "width": 3,
+          "length": 3
+        },
+        "cost": 500000,
+        "maintenanceCost": 5000,
+        "capacity": 200000,
+        "jobsProvided": 10,
+        "reliability": 0.98
+      },
+      {
+        "id": "battery_storage_01",
+        "name": "Grid Battery Storage",
+        "type": "Storage",
+        "modelFile": "models/power/battery_storage_01.glb",
+        "thumbnail": "thumbnails/power/battery_storage_01.png",
+        "footprint": {
+          "width": 2,
+          "length": 4
+        },
+        "cost": 2000000,
+        "maintenanceCost": 15000,
+        "storageCapacity": 500000,
+        "chargingRate": 50000,
+        "dischargingRate": 100000,
+        "efficiency": 0.9,
+        "jobsProvided": 15
+      },
+      {
+        "id": "power_line_01",
+        "name": "Power Line",
+        "type": "Transmission",
+        "modelFile": "models/power/power_line_01.glb",
+        "thumbnail": "thumbnails/power/power_line_01.png",
+        "cost": 1000,
+        "maintenanceCost": 10,
+        "capacity": 100000,
+        "lossRate": 0.01
+      }
+    ]
+  }
