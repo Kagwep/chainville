@@ -9,6 +9,8 @@ import MedicalBuildings from '../structures/buildings/Medical.json';
 import Roads from '../structures/infrastructure/Roads.json';
 import WaterInfrastructure from '../structures/infrastructure/Water.json';
 import PowerInfrastructure from '../structures/infrastructure/Power.json';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import { CHAINVILLE_EMOJIS } from '../constants';
 
 const GRID_SIZE = 40;
 const CELL_SIZE = 40;
@@ -88,7 +90,7 @@ const structuresByCategory = {
   const [showBuildingPanel, setShowBuildingPanel] = useState<boolean>(false);
   const [showInfrastructurePanel, setShowInfrastructurePanel] = useState<boolean>(false);
 
-  const SUB_GRID_SIZE = 40; // 4x4 sub-grid within each cell (logical, not physical)
+  const SUB_GRID_SIZE = 80; // 4x4 sub-grid within each cell (logical, not physical)
   const STRUCTURE_SCALE = 10; // Structures will be 20% of the sub-cell size
   const PREVIEW_HEIGHT_OFFSET = 1;
 
@@ -516,20 +518,43 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     subPanel.isVisible = false;
     advancedTexture.addControl(subPanel);
 
+    const headerPanel = new GUI.StackPanel();
+    headerPanel.isVertical = false;
+    headerPanel.height = "50px";
+    headerPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    subPanel.addControl(headerPanel);
+
     const titleText = new GUI.TextBlock();
+    titleText.width = "200px";
     titleText.height = "40px";
     titleText.color = "black";
-    subPanel.addControl(titleText);
+    headerPanel.addControl(titleText);
 
-    const button = GUI.Button.CreateSimpleButton(`Cancel`, `✖️`);
-    // button.width = "280px";
-    button.height = "30px";
-    button.color = "black";
-    button.background = "rgba(200, 200, 200, 0.4)";
-    button.thickness = 0;
-    button.onPointerUpObservable.add(() => hidePanel(subPanelConfig));
-    subPanel.addControl(button);
-    
+        // Cancel button with icon
+    const cancelButton = GUI.Button.CreateImageWithCenterTextButton("cancelButton", CHAINVILLE_EMOJIS.CLOSE, "");
+    cancelButton.width = "30px";
+    cancelButton.height = "30px";
+    cancelButton.color = "white";
+    cancelButton.cornerRadius = 5
+    cancelButton.thickness = 0;
+  
+
+    if (cancelButton.image) {
+      cancelButton.image.width = "20px";
+      cancelButton.image.height = "20px";
+    }
+    if (cancelButton.textBlock) {
+      cancelButton.textBlock.fontSize = 14;
+    }
+
+    cancelButton.onPointerEnterObservable.add(() => {
+      cancelButton.background = "red"; 
+  });
+
+    cancelButton.onPointerUpObservable.add(() => closePanel(subPanel, advancedTexture));
+    headerPanel.addControl(cancelButton);
+
+
     const scrollViewer = new GUI.ScrollViewer();
     scrollViewer.width = 1;
     scrollViewer.height = "90%";
@@ -713,6 +738,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
         button.height = "30px";
         button.color = "black";
         button.background = "lightgreen";
+        button.thickness = 0;
         button.onPointerUpObservable.add(() => acquireLand(land.x, land.z));
         optionsList.addControl(button);
       });
@@ -726,6 +752,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
         button.height = "30px";
         button.color = "black";
         button.background = "lightblue";
+        button.thickness = 0;
         button.onPointerUpObservable.add(() => handleBuildingAction(option.id));
         optionsList.addControl(button);
       });
@@ -739,7 +766,8 @@ const handleInfrastructureAction = (infrastructureType: string) => {
         button.height = "30px";
         button.color = "black";
         button.background = "lightyellow";
-        button.onPointerUpObservable.add(() => handleInfrastructureAction(option.id));
+        button.thickness = 0;
+        button.onPointerUpObservable.add(() => showStructureOptions(option.id,advancedTexture ));
         optionsList.addControl(button);
       });
     } else {
@@ -748,6 +776,189 @@ const handleInfrastructureAction = (infrastructureType: string) => {
   
   }, [showLandPanel, showBuildingPanel, showInfrastructurePanel, availableLand, buildingOptions, infrastructureOptions]);
 
+  const showStructureOptions = (category: string,advancedTexture: GUI.AdvancedDynamicTexture) => {
+    
+    const structures = structuresByCategory[category as keyof typeof structuresByCategory];
+    
+    const optionsPanel = new GUI.StackPanel("structureOptionsPanel");
+    optionsPanel.width = "300px";
+    optionsPanel.background = "white";
+    optionsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    optionsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    optionsPanel.left = "200px";
+    optionsPanel.paddingTop = "50px";
+    optionsPanel.paddingBottom = "10px";
+
+    const headerPanel = new GUI.StackPanel();
+    headerPanel.isVertical = false;
+    headerPanel.height = "50px";
+    headerPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    optionsPanel.addControl(headerPanel);
+    
+    const titleText = new GUI.TextBlock();
+    titleText.text = `${category.charAt(0).toUpperCase() + category.slice(1)} Structures`;
+    titleText.width = "200px";
+    titleText.height = "30px";
+    titleText.color = getCategoryColor(category);
+    headerPanel.addControl(titleText);
+
+        // Cancel button with icon
+    const cancelButton = GUI.Button.CreateImageWithCenterTextButton("cancelButton", CHAINVILLE_EMOJIS.CLOSE, "");
+    cancelButton.width = "30px";
+    cancelButton.height = "30px";
+    cancelButton.color = "white";
+    cancelButton.cornerRadius = 5
+    cancelButton.thickness = 0;
+  
+
+    if (cancelButton.image) {
+      cancelButton.image.width = "20px";
+      cancelButton.image.height = "20px";
+    }
+    if (cancelButton.textBlock) {
+      cancelButton.textBlock.fontSize = 14;
+    }
+
+    cancelButton.onPointerEnterObservable.add(() => {
+      cancelButton.background = "red"; 
+  });
+
+    cancelButton.onPointerUpObservable.add(() => closePanel(optionsPanel, advancedTexture));
+    headerPanel.addControl(cancelButton);
+
+  
+    structures.forEach(structure => {
+      const button = GUI.Button.CreateSimpleButton(structure.id, structure.name);
+      button.width = "280px";
+      button.height = "30px";
+      button.color = "black";
+      button.cornerRadius = 5;
+      button.thickness = 0;
+      button.background = getCategoryColor(category);
+      button.onPointerUpObservable.add(() => showStructureDetails(structure, category, advancedTexture));
+      optionsPanel.addControl(button);
+    });
+  
+    // Add the options panel to your main UI
+    advancedTexture.addControl(optionsPanel);
+  };
+
+  const showStructureDetails = (structure: any, category: string,advancedTexture: GUI.AdvancedDynamicTexture) => {
+    const detailsPanel = new GUI.StackPanel("structureDetailsPanel");
+    detailsPanel.width = "300px";
+    detailsPanel.background = "white";
+    detailsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    detailsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    detailsPanel.left = "200px";
+    detailsPanel.paddingTop = "50px";
+    detailsPanel.paddingBottom = "10px";
+    
+    
+    const titleText = new GUI.TextBlock();
+    titleText.text = structure.name;
+    titleText.height = "30px";
+    titleText.color = "black";
+    detailsPanel.addControl(titleText);
+  
+    if (structure.thumbnail) {
+      const thumbnail = new GUI.Image("thumbnail", structure.thumbnail);
+      thumbnail.width = "200px";
+      thumbnail.height = "150px";
+      detailsPanel.addControl(thumbnail);
+    }
+  
+  // Create a horizontal stack panel for buttons
+  const buttonPanel = new GUI.StackPanel();
+  buttonPanel.isVertical = false;
+  buttonPanel.height = "50px";
+  buttonPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+  detailsPanel.addControl(buttonPanel);
+
+  // Confirm button with icon
+  const confirmButton = GUI.Button.CreateImageWithCenterTextButton("confirmButton", CHAINVILLE_EMOJIS.CONFIRM, "");
+  confirmButton.width = "40px";
+  confirmButton.height = "40px";
+  confirmButton.color = "white";
+  confirmButton.thickness = 0;
+  confirmButton.background = "green";
+  confirmButton.cornerRadiusW = 5;
+  confirmButton.cornerRadiusX = 5;
+
+  if (confirmButton.image) {
+    confirmButton.image.width = "20px";
+    confirmButton.image.height = "20px";
+  }
+  if (confirmButton.textBlock) {
+    confirmButton.textBlock.fontSize = 14;
+  }
+
+  confirmButton.onPointerEnterObservable.add(() => {
+    document.body.style.cursor = 'pointer';
+  });
+
+  confirmButton.onPointerUpObservable.add(() => {
+    
+    handleStructureAction(structure.id, category);
+    closePanel(detailsPanel, advancedTexture);
+  });
+  buttonPanel.addControl(confirmButton);
+
+  // Cancel button with icon
+  const cancelButton = GUI.Button.CreateImageWithCenterTextButton("cancelButton", CHAINVILLE_EMOJIS.CLOSE, "");
+  cancelButton.width = "40px";
+  cancelButton.height = "40px";
+  cancelButton.color = "white";
+  cancelButton.thickness = 0;
+  cancelButton.background = "red";
+  cancelButton.cornerRadiusY = 5;
+  cancelButton.cornerRadiusZ = 5;
+
+  if (cancelButton.image) {
+    cancelButton.image.width = "20px";
+    cancelButton.image.height = "20px";
+  }
+  if (cancelButton.textBlock) {
+    cancelButton.textBlock.fontSize = 14;
+  }
+
+  cancelButton.onPointerUpObservable.add(() => closePanel(detailsPanel, advancedTexture));
+  buttonPanel.addControl(cancelButton);
+
+  // Add some space between buttons
+  const spacer = new GUI.Rectangle();
+  spacer.width = "20px";
+  spacer.thickness = 0;
+  buttonPanel.addControl(spacer);
+  
+    // Add the details panel to your main UI
+    advancedTexture.addControl(detailsPanel);
+  };
+
+  const handleStructureAction = (structureId: any, category: string) => {
+    // Implement your logic for handling the structure action
+    console.log(`Building ${structureId} from category ${category}`);
+    // You might want to call a function from your game logic here
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      residential: 'lightblue',
+      office: 'lightgreen',
+      industry: 'lightyellow',
+      hospital: 'lightpink',
+      roads: 'lightgray',
+      waterSupply: 'lightcyan',
+      powerLines: 'lightsalmon'
+    };
+    return colors[category as keyof typeof colors] || 'white';
+  };
+
+  const closePanel = (panel: GUI.StackPanel, advancedTexture: GUI.AdvancedDynamicTexture) => {
+    advancedTexture.removeControl(panel);
+  };
+
+
+  
   // Initial update of available land
   useEffect(() => {
     updateAvailableLand();

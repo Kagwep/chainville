@@ -1,49 +1,379 @@
 {
-    "residentialBuildings": [
-      {
-        "id": "apartment_complex_01",
-        "name": "Modern Apartment Complex",
-        "type": "High-density Residential",
-        "modelFile": "models/residential/apartment_complex_01.glb",
-        "thumbnail": "thumbnails/residential/apartment_complex_01.png",
-        "footprint": {
-          "width": 4,
-          "length": 4
-        },
-        "levels": 5,
-        "capacity": 50,
-        "cost": 500000,
-        "maintenanceCost": 5000
+  "residentialBuildings": [
+    {
+      "id": "apartment_complex_01",
+      "name": "Modern Apartment Complex",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_01.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_01.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
       },
-      {
-        "id": "suburban_house_01",
-        "name": "Suburban Family Home",
-        "type": "Low-density Residential",
-        "modelFile": "models/residential/suburban_house_01.glb",
-        "thumbnail": "thumbnails/residential/suburban_house_01.png",
-        "footprint": {
-          "width": 2,
-          "length": 2
-        },
-        "levels": 2,
-        "capacity": 4,
-        "cost": 250000,
-        "maintenanceCost": 2000
+      "levels": 5,
+      "capacity": 50,
+      "cost": 500000,
+      "maintenanceCost": 5000
+    },
+    {
+      "id": "apartment_complex_02",
+      "name": "Luxury Apartment Tower",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_02.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_02.png",
+      "footprint": {
+        "width": 5,
+        "length": 5
       },
-      {
-        "id": "townhouse_01",
-        "name": "Urban Townhouse",
-        "type": "Medium-density Residential",
-        "modelFile": "models/residential/townhouse_01.glb",
-        "thumbnail": "thumbnails/residential/townhouse_01.png",
-        "footprint": {
-          "width": 1,
-          "length": 2
-        },
-        "levels": 3,
-        "capacity": 6,
-        "cost": 300000,
-        "maintenanceCost": 2500
-      }
-    ]
-  }
+      "levels": 10,
+      "capacity": 100,
+      "cost": 1200000,
+      "maintenanceCost": 12000
+    },
+    {
+      "id": "apartment_complex_03",
+      "name": "Eco-Friendly Apartment Block",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_03.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_03.png",
+      "footprint": {
+        "width": 4,
+        "length": 3
+      },
+      "levels": 6,
+      "capacity": 60,
+      "cost": 750000,
+      "maintenanceCost": 6000
+    },
+    {
+      "id": "apartment_complex_05",
+      "name": "Contemporary Urban Flats",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_05.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_05.png",
+      "footprint": {
+        "width": 4,
+        "length": 5
+      },
+      "levels": 7,
+      "capacity": 70,
+      "cost": 850000,
+      "maintenanceCost": 7000
+    },
+    {
+      "id": "apartment_complex_06",
+      "name": "Skyline Residential Tower",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_06.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_06.png",
+      "footprint": {
+        "width": 5,
+        "length": 5
+      },
+      "levels": 15,
+      "capacity": 150,
+      "cost": 1500000,
+      "maintenanceCost": 15000
+    },
+    {
+      "id": "apartment_complex_07",
+      "name": "Affordable Housing Block",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_07.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_07.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
+      },
+      "levels": 5,
+      "capacity": 50,
+      "cost": 600000,
+      "maintenanceCost": 5000
+    },
+    {
+      "id": "apartment_complex_08",
+      "name": "Art Deco Apartment Building",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_08.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_08.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 10,
+      "capacity": 100,
+      "cost": 1100000,
+      "maintenanceCost": 10000
+    },    
+    {
+      "id": "apartment_complex_04",
+      "name": "Urban Apartment Block",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/apartment_complex_04.glb",
+      "thumbnail": "thumbnails/residential/apartment_complex_04.png",
+      "footprint": {
+        "width": 3,
+        "length": 4
+      },
+      "levels": 8,
+      "capacity": 80,
+      "cost": 900000,
+      "maintenanceCost": 8000
+    },    
+    {
+      "id": "suburban_house_02",
+      "name": "Modern Suburban Villa",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/suburban_house_02.glb",
+      "thumbnail": "thumbnails/residential/suburban_house_02.png",
+      "footprint": {
+        "width": 2,
+        "length": 3
+      },
+      "levels": 3,
+      "capacity": 6,
+      "cost": 350000,
+      "maintenanceCost": 2500
+    },
+    {
+      "id": "suburban_house_03",
+      "name": "Traditional Suburban Bungalow",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/suburban_house_03.glb",
+      "thumbnail": "thumbnails/residential/suburban_house_03.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 1,
+      "capacity": 3,
+      "cost": 200000,
+      "maintenanceCost": 1500
+    },
+    {
+      "id": "suburban_house_04",
+      "name": "Spacious Suburban Cottage",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/suburban_house_04.glb",
+      "thumbnail": "thumbnails/residential/suburban_house_04.png",
+      "footprint": {
+        "width": 3,
+        "length": 2
+      },
+      "levels": 2,
+      "capacity": 5,
+      "cost": 300000,
+      "maintenanceCost": 2200
+    },    
+    {
+      "id": "suburban_house_01",
+      "name": "Suburban Family Home",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/suburban_house_01.glb",
+      "thumbnail": "thumbnails/residential/suburban_house_01.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 2,
+      "capacity": 4,
+      "cost": 250000,
+      "maintenanceCost": 2000
+    },
+    {
+      "id": "townhouse_01",
+      "name": "Urban Townhouse",
+      "type": "Medium-density Residential",
+      "modelFile": "models/residential/townhouse_01.glb",
+      "thumbnail": "thumbnails/residential/townhouse_01.png",
+      "footprint": {
+        "width": 1,
+        "length": 2
+      },
+      "levels": 3,
+      "capacity": 6,
+      "cost": 300000,
+      "maintenanceCost": 2500
+    },
+    {
+      "id": "skyscraper_01",
+      "name": "Luxury Skyscraper",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/skyscraper_01.glb",
+      "thumbnail": "thumbnails/residential/skyscraper_01.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
+      },
+      "levels": 40,
+      "capacity": 200,
+      "cost": 10000000,
+      "maintenanceCost": 50000
+    },
+    {
+      "id": "cottage_01",
+      "name": "Rustic Cottage",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/cottage_01.glb",
+      "thumbnail": "thumbnails/residential/cottage_01.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 1,
+      "capacity": 2,
+      "cost": 150000,
+      "maintenanceCost": 1500
+    },
+    {
+      "id": "condo_complex_01",
+      "name": "Modern Condominium Complex",
+      "type": "Medium-density Residential",
+      "modelFile": "models/residential/condo_complex_01.glb",
+      "thumbnail": "thumbnails/residential/condo_complex_01.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
+      },
+      "levels": 6,
+      "capacity": 36,
+      "cost": 4000000,
+      "maintenanceCost": 15000
+    },
+    {
+      "id": "villa_01",
+      "name": "Luxury Villa",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/villa_01.glb",
+      "thumbnail": "thumbnails/residential/villa_01.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
+      },
+      "levels": 2,
+      "capacity": 6,
+      "cost": 1000000,
+      "maintenanceCost": 8000
+    },
+    {
+      "id": "studio_apartment_01",
+      "name": "Compact Studio Apartment",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/studio_apartment_01.glb",
+      "thumbnail": "thumbnails/residential/studio_apartment_01.png",
+      "footprint": {
+        "width": 1,
+        "length": 1
+      },
+      "levels": 1,
+      "capacity": 1,
+      "cost": 100000,
+      "maintenanceCost": 1000
+    },
+    {
+      "id": "duplex_01",
+      "name": "Family Duplex",
+      "type": "Medium-density Residential",
+      "modelFile": "models/residential/duplex_01.glb",
+      "thumbnail": "thumbnails/residential/duplex_01.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 2,
+      "capacity": 8,
+      "cost": 400000,
+      "maintenanceCost": 3500
+    },
+    {
+      "id": "bungalow_01",
+      "name": "Cozy Bungalow",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/bungalow_01.glb",
+      "thumbnail": "thumbnails/residential/bungalow_01.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 1,
+      "capacity": 3,
+      "cost": 200000,
+      "maintenanceCost": 1800
+    },
+    {
+      "id": "loft_apartment_01",
+      "name": "Industrial Loft Apartment",
+      "type": "Medium-density Residential",
+      "modelFile": "models/residential/loft_apartment_01.glb",
+      "thumbnail": "thumbnails/residential/loft_apartment_01.png",
+      "footprint": {
+        "width": 2,
+        "length": 2
+      },
+      "levels": 2,
+      "capacity": 4,
+      "cost": 350000,
+      "maintenanceCost": 3000
+    },
+    {
+      "id": "mansion_01",
+      "name": "Sprawling Mansion",
+      "type": "Low-density Residential",
+      "modelFile": "models/residential/mansion_01.glb",
+      "thumbnail": "thumbnails/residential/mansion_01.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 3,
+      "capacity": 8,
+      "cost": 2000000,
+      "maintenanceCost": 15000
+    },
+    {
+      "id": "micro_apartment_01",
+      "name": "Efficient Micro Apartment",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/micro_apartment_01.glb",
+      "thumbnail": "thumbnails/residential/micro_apartment_01.png",
+      "footprint": {
+        "width": 1,
+        "length": 1
+      },
+      "levels": 1,
+      "capacity": 1,
+      "cost": 80000,
+      "maintenanceCost": 800
+    },
+    {
+      "id": "row_house_01",
+      "name": "Historic Row House",
+      "type": "Medium-density Residential",
+      "modelFile": "models/residential/row_house_01.glb",
+      "thumbnail": "thumbnails/residential/row_house_01.png",
+      "footprint": {
+        "width": 1,
+        "length": 2
+      },
+      "levels": 3,
+      "capacity": 5,
+      "cost": 450000,
+      "maintenanceCost": 3500
+    },
+    {
+      "id": "penthouse_01",
+      "name": "Luxury Penthouse Suite",
+      "type": "High-density Residential",
+      "modelFile": "models/residential/penthouse_01.glb",
+      "thumbnail": "thumbnails/residential/penthouse_01.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
+      },
+      "levels": 2,
+      "capacity": 4,
+      "cost": 3000000,
+      "maintenanceCost": 20000
+    }
+  ]
+}
