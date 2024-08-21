@@ -35,7 +35,7 @@ interface TopPanelInfo {
 }
 
 interface StructureInstance {
-  type: 'building' | 'infrastructure';
+  type: string;
   category: string;
   id: string;
   mesh: BABYLON.Mesh;
@@ -52,7 +52,7 @@ interface GridCell {
 
 
 type SelectedStructure = {
-  type: 'building' | 'infrastructure';
+  type: string;
   category:string;
   id: string;
   name: string;
@@ -90,7 +90,7 @@ const structuresByCategory = {
   const [showBuildingPanel, setShowBuildingPanel] = useState<boolean>(false);
   const [showInfrastructurePanel, setShowInfrastructurePanel] = useState<boolean>(false);
 
-  const SUB_GRID_SIZE = 80; // 4x4 sub-grid within each cell (logical, not physical)
+  const SUB_GRID_SIZE = 40; // 4x4 sub-grid within each cell (logical, not physical)
   const STRUCTURE_SCALE = 10; // Structures will be 20% of the sub-cell size
   const PREVIEW_HEIGHT_OFFSET = 1;
 
@@ -233,13 +233,13 @@ const structuresByCategory = {
 
 
   // Function to select a random structure from a category
-const selectRandomStructure = (category: string) => {
+const getStructure = (structureId:string, category: string) => {
   const structures = structuresByCategory[category as keyof typeof structuresByCategory];
   if (!structures || structures.length === 0) {
     console.error(`No structures found for category: ${category}`);
     return null;
   }
-  return structures[Math.floor(Math.random() * structures.length)];
+  return structures.find(structure => structure.id === structureId);
 };
 
 const calculateVerticalOffset = (mesh: BABYLON.Mesh): number => {
@@ -326,7 +326,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   
         newStructure.position = new BABYLON.Vector3(
           cellX * CELL_SIZE + snapX,
-          verticalOffset,
+          verticalOffset + 0.2,
           cellZ * CELL_SIZE + snapZ
         );
         
@@ -684,39 +684,39 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     subPanelConfig.isVisible = false
   }
 
-// Updated handleBuildingAction function
-const handleBuildingAction = (buildingType: string) => {
-  const randomStructure = selectRandomStructure(buildingType);
-  if (randomStructure) {
-    const newSelectedStructure: SelectedStructure = {
-      type: 'building',
-      id: randomStructure.id,
-      name: randomStructure.name,
-      modelFile: randomStructure.modelFile,
-      cost: randomStructure.cost,
-      category: buildingType
-    };
-    setSelectedStructure(newSelectedStructure);
-    createStructurePreview(newSelectedStructure);
-  }
-};
+// // Updated handleBuildingAction function
+// const handleBuildingAction = (buildingType: string) => {
+//   const randomStructure = selectRandomStructure(buildingType);
+//   if (randomStructure) {
+//     const newSelectedStructure: SelectedStructure = {
+//       type: 'building',
+//       id: randomStructure.id,
+//       name: randomStructure.name,
+//       modelFile: randomStructure.modelFile,
+//       cost: randomStructure.cost,
+//       category: buildingType
+//     };
+//     setSelectedStructure(newSelectedStructure);
+//     createStructurePreview(newSelectedStructure);
+//   }
+// };
 
 // Updated handleInfrastructureAction function
-const handleInfrastructureAction = (infrastructureType: string) => {
-  const randomStructure = selectRandomStructure(infrastructureType);
-  if (randomStructure) {
-    const newSelectedStructure: SelectedStructure = {
-      type: 'infrastructure',
-      id: randomStructure.id,
-      name: randomStructure.name,
-      modelFile: randomStructure.modelFile,
-      cost: randomStructure.cost,
-      category: infrastructureType
-    };
-    setSelectedStructure(newSelectedStructure);
-    createStructurePreview(newSelectedStructure);
-  }
-};
+// const handleInfrastructureAction = (infrastructureType: string) => {
+//   const randomStructure = selectRandomStructure(infrastructureType);
+//   if (randomStructure) {
+//     const newSelectedStructure: SelectedStructure = {
+//       type: 'infrastructure',
+//       id: randomStructure.id,
+//       name: randomStructure.name,
+//       modelFile: randomStructure.modelFile,
+//       cost: randomStructure.cost,
+//       category: infrastructureType
+//     };
+//     setSelectedStructure(newSelectedStructure);
+//     createStructurePreview(newSelectedStructure);
+//   }
+// };
 
 
   useEffect(() => {
@@ -753,7 +753,8 @@ const handleInfrastructureAction = (infrastructureType: string) => {
         button.color = "black";
         button.background = "lightblue";
         button.thickness = 0;
-        button.onPointerUpObservable.add(() => handleBuildingAction(option.id));
+        // button.onPointerUpObservable.add(() => handleBuildingAction(option.id));
+        button.onPointerUpObservable.add(() => showStructureOptions(option.id,advancedTexture,'building' ));
         optionsList.addControl(button);
       });
     } else if (showInfrastructurePanel) {
@@ -767,7 +768,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
         button.color = "black";
         button.background = "lightyellow";
         button.thickness = 0;
-        button.onPointerUpObservable.add(() => showStructureOptions(option.id,advancedTexture ));
+        button.onPointerUpObservable.add(() => showStructureOptions(option.id,advancedTexture,'infrastructure' ));
         optionsList.addControl(button);
       });
     } else {
@@ -776,7 +777,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
   
   }, [showLandPanel, showBuildingPanel, showInfrastructurePanel, availableLand, buildingOptions, infrastructureOptions]);
 
-  const showStructureOptions = (category: string,advancedTexture: GUI.AdvancedDynamicTexture) => {
+  const showStructureOptions = (category: string,advancedTexture: GUI.AdvancedDynamicTexture,buildingType: string) => {
     
     const structures = structuresByCategory[category as keyof typeof structuresByCategory];
     
@@ -835,7 +836,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
       button.cornerRadius = 5;
       button.thickness = 0;
       button.background = getCategoryColor(category);
-      button.onPointerUpObservable.add(() => showStructureDetails(structure, category, advancedTexture));
+      button.onPointerUpObservable.add(() => showStructureDetails(structure, category, advancedTexture,buildingType));
       optionsPanel.addControl(button);
     });
   
@@ -843,7 +844,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
     advancedTexture.addControl(optionsPanel);
   };
 
-  const showStructureDetails = (structure: any, category: string,advancedTexture: GUI.AdvancedDynamicTexture) => {
+  const showStructureDetails = (structure: any, category: string,advancedTexture: GUI.AdvancedDynamicTexture,buildingType: string) => {
     const detailsPanel = new GUI.StackPanel("structureDetailsPanel");
     detailsPanel.width = "300px";
     detailsPanel.background = "white";
@@ -898,7 +899,7 @@ const handleInfrastructureAction = (infrastructureType: string) => {
 
   confirmButton.onPointerUpObservable.add(() => {
     
-    handleStructureAction(structure.id, category);
+    handleStructureAction(structure.id, category,buildingType);
     closePanel(detailsPanel, advancedTexture);
   });
   buttonPanel.addControl(confirmButton);
@@ -934,10 +935,23 @@ const handleInfrastructureAction = (infrastructureType: string) => {
     advancedTexture.addControl(detailsPanel);
   };
 
-  const handleStructureAction = (structureId: any, category: string) => {
+  const handleStructureAction = (structureId: any, category: string, buildingType: string) => {
     // Implement your logic for handling the structure action
     console.log(`Building ${structureId} from category ${category}`);
     // You might want to call a function from your game logic here
+    const structure = getStructure(structureId,category);
+    if (structure) {
+      const newSelectedStructure: SelectedStructure = {
+        type: buildingType,
+        id: structure.id,
+        name: structure.name,
+        modelFile: structure.modelFile,
+        cost: structure.cost,
+        category: category
+      };
+      setSelectedStructure(newSelectedStructure);
+      createStructurePreview(newSelectedStructure);
+    }
   };
 
   const getCategoryColor = (category: string) => {

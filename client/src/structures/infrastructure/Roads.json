@@ -14,6 +14,20 @@
       "noise": 3
     },
     {
+      "id": "two_lane_road_02",
+      "name": "Two-Lane Road with Bike Lanes",
+      "type": "Enhanced",
+      "modelFile": "models/roads/two_lane_road_02.glb",
+      "thumbnail": "thumbnails/roads/two_lane_road_02.png",
+      "width": 2,
+      "cost": 150,
+      "maintenanceCost": 15,
+      "speedLimit": 50,
+      "capacity": 1200,
+      "noise": 2,
+      "bikeLanes": true
+    },
+    {
       "id": "four_lane_road",
       "name": "Four-Lane Road",
       "type": "Medium",

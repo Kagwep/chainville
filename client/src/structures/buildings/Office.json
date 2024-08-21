@@ -1,56 +1,127 @@
 {
-    "officeBuildings": [
-      {
-        "id": "skyscraper_01",
-        "name": "Modern Skyscraper",
-        "type": "High-rise Office",
-        "modelFile": "models/office/skyscraper_01.glb",
-        "thumbnail": "thumbnails/office/skyscraper_01.png",
-        "footprint": {
-          "width": 3,
-          "length": 3
-        },
-        "levels": 40,
-        "capacity": 2000,
-        "cost": 10000000,
-        "maintenanceCost": 100000,
-        "energyConsumption": 5000,
-        "jobsProvided": 2000
+  "officeBuildings": [
+    {
+      "id": "skyscraper_01",
+      "name": "Modern Skyscraper",
+      "type": "High-rise Office",
+      "modelFile": "models/office/skyscraper_01.glb",
+      "thumbnail": "thumbnails/office/skyscraper_01.png",
+      "footprint": {
+        "width": 3,
+        "length": 3
       },
-      {
-        "id": "office_park_01",
-        "name": "Suburban Office Park",
-        "type": "Low-rise Office",
-        "modelFile": "models/office/office_park_01.glb",
-        "thumbnail": "thumbnails/office/office_park_01.png",
-        "footprint": {
-          "width": 4,
-          "length": 4
-        },
-        "levels": 3,
-        "capacity": 500,
-        "cost": 2000000,
-        "maintenanceCost": 20000,
-        "energyConsumption": 1000,
-        "jobsProvided": 500
+      "levels": 40,
+      "capacity": 2000,
+      "cost": 10000000,
+      "maintenanceCost": 100000,
+      "energyConsumption": 5000,
+      "jobsProvided": 2000
+    },
+    {
+      "id": "office_park_01",
+      "name": "Suburban Office Park",
+      "type": "Low-rise Office",
+      "modelFile": "models/office/office_park_01.glb",
+      "thumbnail": "thumbnails/office/office_park_01.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
       },
-      {
-        "id": "tech_campus_01",
-        "name": "Tech Company Campus",
-        "type": "Specialized Office",
-        "modelFile": "models/office/tech_campus_01.glb",
-        "thumbnail": "thumbnails/office/tech_campus_01.png",
-        "footprint": {
-          "width": 5,
-          "length": 5
-        },
-        "levels": 4,
-        "capacity": 1000,
-        "cost": 5000000,
-        "maintenanceCost": 50000,
-        "energyConsumption": 3000,
-        "jobsProvided": 1000,
-        "specialFeatures": ["Research Lab", "Green Spaces"]
-      }
-    ]
-  }
+      "levels": 3,
+      "capacity": 500,
+      "cost": 2000000,
+      "maintenanceCost": 20000,
+      "energyConsumption": 1000,
+      "jobsProvided": 500
+    },
+    {
+      "id": "tech_campus_01",
+      "name": "Tech Company Campus",
+      "type": "Specialized Office",
+      "modelFile": "models/office/tech_campus_01.glb",
+      "thumbnail": "thumbnails/office/tech_campus_01.png",
+      "footprint": {
+        "width": 5,
+        "length": 5
+      },
+      "levels": 4,
+      "capacity": 1000,
+      "cost": 5000000,
+      "maintenanceCost": 50000,
+      "energyConsumption": 3000,
+      "jobsProvided": 1000,
+      "specialFeatures": ["Research Lab", "Green Spaces"]
+    },
+    {
+      "id": "office_complex_01",
+      "name": "Corporate Office Complex",
+      "type": "Mid-rise Office",
+      "modelFile": "models/office/office_complex_01.glb",
+      "thumbnail": "thumbnails/office/office_complex_01.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 10,
+      "capacity": 1500,
+      "cost": 7000000,
+      "maintenanceCost": 70000,
+      "energyConsumption": 4000,
+      "jobsProvided": 1500
+    },
+    {
+      "id": "office_complex_02",
+      "name": "Financial Office Complex",
+      "type": "Mid-rise Office",
+      "modelFile": "models/office/office_complex_02.glb",
+      "thumbnail": "thumbnails/office/office_complex_02.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 12,
+      "capacity": 1800,
+      "cost": 8000000,
+      "maintenanceCost": 80000,
+      "energyConsumption": 4500,
+      "jobsProvided": 1800,
+      "specialFeatures": ["Conference Center", "Luxury Interior"]
+    },
+    {
+      "id": "office_complex_03",
+      "name": "Business Hub Complex",
+      "type": "Mid-rise Office",
+      "modelFile": "models/office/office_complex_03.glb",
+      "thumbnail": "thumbnails/office/office_complex_03.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 8,
+      "capacity": 1200,
+      "cost": 6000000,
+      "maintenanceCost": 60000,
+      "energyConsumption": 3500,
+      "jobsProvided": 1200,
+      "specialFeatures": ["Shared Workspace", "Cafeteria"]
+    },
+    {
+      "id": "office_complex_04",
+      "name": "Executive Office Complex",
+      "type": "Mid-rise Office",
+      "modelFile": "models/office/office_complex_04.glb",
+      "thumbnail": "thumbnails/office/office_complex_04.png",
+      "footprint": {
+        "width": 4,
+        "length": 4
+      },
+      "levels": 15,
+      "capacity": 2000,
+      "cost": 9000000,
+      "maintenanceCost": 90000,
+      "energyConsumption": 5000,
+      "jobsProvided": 2000,
+      "specialFeatures": ["Executive Suites", "Private Gym"]
+    }
+  ]
+}
