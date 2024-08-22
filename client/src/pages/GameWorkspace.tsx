@@ -34,20 +34,30 @@ interface TopPanelInfo {
   walletAddress: string;
 }
 
-interface StructureInstance {
+interface StructureMetadata {
   type: string;
   category: string;
   id: string;
-  mesh: BABYLON.Mesh;
   x: number;
   y: number;
   z: number;
 }
 
+
+interface StructureData {
+  type: string;
+  category: string;
+  id: string;
+  x: number;
+  y: number;
+  z: number;
+  mesh:BABYLON.Mesh;
+}
+
 interface GridCell {
   mesh: BABYLON.Mesh;
   acquired: boolean;
-  structures: StructureInstance[];
+  structures: Map<string, StructureData>;
 }
 
 
@@ -73,7 +83,12 @@ const GameWorkspace: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<BABYLON.Scene | null>(null);
   const gridCellsRef = useRef<{[key: string]: GridCell}>({});
+  const inputTextRef = useRef<GUI.InputText | null>(null);
   const [activeMenuSection, setActiveMenuSection] = useState<string | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isPlacementMode, setIsPlacementMode] = useState(false);
+  const detailsPanelRef = useRef<GUI.Rectangle | null>(null);
+  let currentPreviewResult: BABYLON.ISceneLoaderAsyncResult | null = null;
 
 // Organize structures by their actual categories
 const structuresByCategory = {
@@ -185,6 +200,7 @@ const structuresByCategory = {
     // Create GUI
     createGUI(scene);
 
+
     return scene;
   };
 
@@ -198,13 +214,13 @@ const structuresByCategory = {
         cell.position.x = x * CELL_SIZE + CELL_SIZE / 2;
         cell.position.z = z * CELL_SIZE + CELL_SIZE / 2;
         const material = new BABYLON.StandardMaterial(`cellMat_${x}_${z}`, scene);
-        material.diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1);
+        material.diffuseColor = new BABYLON.Color3(0.7, 0.7, 1); //BABYLON.Color3(0.1, 0.6, 0.1);
         cell.material = material;
 
         gridCellsRef.current[`${x}_${z}`] = {
           mesh: cell,
           acquired: false,
-          structures: []
+          structures: new Map<string, StructureData>(),
         };
 
         cell.actionManager = new BABYLON.ActionManager(scene);
@@ -247,14 +263,56 @@ const calculateVerticalOffset = (mesh: BABYLON.Mesh): number => {
   return (boundingBox.maximum.y - boundingBox.minimum.y) * mesh.scaling.y / 2;
 };
 
+const showBuiltStructureDetails = (structureMetadata: StructureMetadata, structureId: string) => {
+  if (!detailsPanelRef.current) return;
+
+  console.log(structureId)
+
+  const detailsPanel = detailsPanelRef.current;
+  const detailsText = detailsPanel.getChildByName("detailsText") as GUI.TextBlock;
+
+    // Safely access position properties with fallback to 0
+  const x = structureMetadata.x ?? 0;
+  const y = structureMetadata.y ?? 0;
+  const z = structureMetadata.z ?? 0;
+
+  detailsText.text = `
+    Type: ${structureMetadata.type}
+    Category: ${structureMetadata.category}
+    ID: ${structureMetadata.id}
+    Position: (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})
+  `;
+
+  const cellX = Math.floor(structureMetadata.x / CELL_SIZE);
+  const cellZ = Math.floor(structureMetadata.z / CELL_SIZE);
+  const cellKey = `${cellX}_${cellZ}`;
+
+  detailsPanel.metadata = { structureId, cellKey };
+
+  const removeButton = detailsPanel.getChildByName("removeButton") as GUI.Button;
+  if (removeButton) {
+    removeButton.onPointerUpObservable.clear(); // Clear previous observers
+    removeButton.onPointerUpObservable.add(() => {
+      if (detailsPanel.metadata) {
+        const { cellKey, structureId } = detailsPanel.metadata;
+        removeStructure(cellKey, structureId);
+        detailsPanel.isVisible = false; // Hide panel after removal
+      }
+    });
+  }
+
+  detailsPanel.isVisible = true;
+};
+
+
 const createStructurePreview = async (structure: SelectedStructure) => {
   if (sceneRef.current && structurePreview) {
     structurePreview.dispose();
   }
   if (sceneRef.current) {
     try {
-      const result = await BABYLON.SceneLoader.ImportMeshAsync("", "", structure.modelFile, sceneRef.current);
-      const preview = result.meshes[0] as BABYLON.Mesh;
+      currentPreviewResult = await BABYLON.SceneLoader.ImportMeshAsync("", "", structure.modelFile, sceneRef.current);
+      const preview = currentPreviewResult.meshes[0] as BABYLON.Mesh;
       preview.name = "structurePreview";
 
       // Set initial scaling
@@ -276,6 +334,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       preview.isVisible = false;
       preview.metadata = { verticalOffset }; 
       setStructurePreview(preview);
+      setIsPlacementMode(true);
     } catch (error) {
       console.error(`Error loading model for ${structure.id}:`, error);
     }
@@ -313,8 +372,17 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   
       try {
         const result = await BABYLON.SceneLoader.ImportMeshAsync("", "", selectedStructure.modelFile, sceneRef.current);
+
         const newStructure = result.meshes[0] as BABYLON.Mesh;
-        newStructure.name = `${selectedStructure.id}_${cellX}_${cellZ}`;
+
+        // result.meshes.slice(1).forEach(mesh => {
+        //   mesh.isPickable = false;
+        // });
+
+        newStructure.isPickable = true;
+
+        const structureId = `${selectedStructure.id}_${cellX}_${cellZ}_${Date.now()}`;
+        newStructure.name = structureId;
   
         newStructure.scaling = new BABYLON.Vector3(
           STRUCTURE_SCALE * (subCellSize / CELL_SIZE),
@@ -333,16 +401,26 @@ const createStructurePreview = async (structure: SelectedStructure) => {
         const material = new BABYLON.StandardMaterial(`structureMat_${cellX}_${cellZ}`, sceneRef.current);
         material.diffuseColor = getStructureColor(selectedStructure.id);
         newStructure.material = material;
-  
-        cell.structures.push({
+
+        const structureData =  {
           type: selectedStructure.type,
           category: selectedStructure.category,
           id: selectedStructure.id,
-          mesh: newStructure,
           x: newStructure.position.x,
           y: newStructure.position.y,
           z: newStructure.position.z
+        }
+
+        newStructure.metadata = structureData;
+
+        result.meshes.slice(1).forEach(mesh => {
+          mesh.metadata = structureData;
         });
+
+        
+  
+        cell.structures.set(structureId,{...structureData, mesh: newStructure});
+      
   
         console.log(`Placed ${selectedStructure.name} at cell (${cellX}, ${cellZ}), sub-position (${snapX.toFixed(2)}, ${snapZ.toFixed(2)})`);
       } catch (error) {
@@ -388,14 +466,39 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       };
 
       sceneRef.current.onPointerDown = (event) => {
+       
         if (event.button === 0) { // Left mouse button
           const pickResult = sceneRef.current?.pick(event.clientX, event.clientY);
           if (pickResult?.hit && pickResult.pickedMesh?.name.startsWith('cell_') && pickResult.pickedPoint) {
             placeStructure(pickResult.pickedPoint);
           }
         }
+
+
       };
+
+
     }
+
+    if (sceneRef.current &&! structurePreview) {
+      sceneRef.current.onPointerDown = (evt) => {
+        const pickResult = sceneRef.current?.pick(evt.clientX, evt.clientY);
+        if (pickResult?.hit && pickResult.pickedMesh) {
+          const pickedMesh = pickResult.pickedMesh;
+          console.log("The meta",pickedMesh.metadata)
+          console.log("The meta",pickedMesh)
+          if (pickedMesh.metadata) {
+            showBuiltStructureDetails(pickedMesh.metadata as StructureMetadata, pickedMesh.name);
+          } else {
+            detailsPanelRef.current!.isVisible = false;
+          }
+        } else {
+          detailsPanelRef.current!.isVisible = false;
+        }
+      }
+
+    }
+
 
     return () => {
       if (sceneRef.current) {
@@ -417,7 +520,9 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     // Create right panel for sub-menus
     createSubMenuPanel(advancedTexture);
 
-    createBottomLeftPanel(advancedTexture)
+    createBottomLeftPanel(advancedTexture);
+
+    createBuiltDetailsPanel(advancedTexture);
   };
 
   const createTopPanel = (advancedTexture: GUI.AdvancedDynamicTexture) => {
@@ -566,6 +671,60 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     return { subPanel, titleText, optionsList };
   };
 
+  const createBuiltDetailsPanel = (advancedTexture: GUI.AdvancedDynamicTexture) => {
+
+    // Create details panel (initially hidden)
+    const detailsPanel = new GUI.Rectangle("detailsPanel");
+    detailsPanel.width = "300px";
+    detailsPanel.height = "200px";
+    detailsPanel.cornerRadius = 10;
+    detailsPanel.color = "White";
+    detailsPanel.thickness = 2;
+    detailsPanel.background = "rgba(0, 0, 0, 0.7)";
+    detailsPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    detailsPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    detailsPanel.top = "10px";
+    detailsPanel.isVisible = false;
+    advancedTexture.addControl(detailsPanel);
+    detailsPanelRef.current = detailsPanel;
+
+    // Add text block for structure details
+    const detailsText = new GUI.TextBlock("detailsText");
+    detailsText.text = "Structure Details";
+    detailsText.color = "white";
+    detailsText.fontSize = 14;
+    detailsText.textWrapping = true;
+    detailsPanel.addControl(detailsText);
+
+    const structureInfo = detailsPanel.metadata;
+
+    // Add close button
+    const closeButton = GUI.Button.CreateSimpleButton("closeButton", "X");
+    closeButton.width = "30px";
+    closeButton.height = "30px";
+    closeButton.color = "white";
+    closeButton.cornerRadius = 15;
+    closeButton.background = "red";
+    closeButton.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    closeButton.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    closeButton.onPointerUpObservable.add(() => {
+      detailsPanel.isVisible = false;
+    });
+    detailsPanel.addControl(closeButton);
+
+    // Add close button
+    const removeButton = GUI.Button.CreateSimpleButton("removeButton", "remove");
+    removeButton.width = "100px";
+    removeButton.height = "30px";
+    removeButton.color = "white";
+    removeButton.cornerRadius = 15;
+    removeButton.background = "red";
+    removeButton.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    removeButton.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+    detailsPanel.addControl(removeButton);
+  }
+
 
   const setupCameraControls = (scene: BABYLON.Scene) => {
     if (!cameraRef.current) return;
@@ -583,6 +742,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
     // Add keyboard controls for panning
     scene.onKeyboardObservable.add((kbInfo) => {
+      if (isInputFocused) return;
       let pan = 1; // Adjust this value to change pan speed
       switch (kbInfo.type) {
         case BABYLON.KeyboardEventTypes.KEYDOWN:
@@ -603,6 +763,10 @@ const createStructurePreview = async (structure: SelectedStructure) => {
             case 'D':
               camera.inertialPanningX += pan;
               break;
+            case 'Escape':
+              cancelSelection();
+              break;
+
           }
           break;
       }
@@ -637,6 +801,32 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     });
   };
 
+  const cancelSelection = () => {
+    setSelectedStructure(null);
+    setStructurePreview(null);
+
+    const previewMesh = sceneRef.current?.getMeshByName("structurePreview");
+
+    if (previewMesh) {
+      previewMesh.dispose();
+      console.log("Preview mesh disposed");
+    } else {
+      console.log("No preview mesh found to dispose");
+    }
+
+    if (currentPreviewResult) {
+      currentPreviewResult.meshes.forEach(mesh => mesh.dispose());
+      currentPreviewResult.skeletons.forEach(skeleton => skeleton.dispose());
+      currentPreviewResult.animationGroups.forEach(animationGroup => animationGroup.dispose());
+      currentPreviewResult.lights.forEach(light => light.dispose());
+      currentPreviewResult = null;
+      console.log("Preview structure disposed");
+    }
+
+    setIsPlacementMode(false);
+    // Add any other cleanup or state reset logic here
+  };
+
   const zoomToCell = (x: number, z: number) => {
     if (!cameraRef.current) return;
     const camera = cameraRef.current;
@@ -658,7 +848,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     const key = `${x}_${z}`;
     if (!gridCellsRef.current[key].acquired) {
       gridCellsRef.current[key].acquired = true;
-      (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.7, 0.7, 1);
+      (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1); //BABYLON.Color3(0.7, 0.7, 1)
       console.log(`Acquired land at ${x}, ${z}`);
       zoomToCell(x, z);
       updateAvailableLand();
@@ -935,6 +1125,8 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     advancedTexture.addControl(detailsPanel);
   };
 
+
+
   const handleStructureAction = (structureId: any, category: string, buildingType: string) => {
     // Implement your logic for handling the structure action
     console.log(`Building ${structureId} from category ${category}`);
@@ -951,6 +1143,16 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       };
       setSelectedStructure(newSelectedStructure);
       createStructurePreview(newSelectedStructure);
+    }
+  };
+
+  const removeStructure = (cellKey: string, structureId: string) => {
+    const cell = gridCellsRef.current[cellKey];
+    if (cell && cell.structures.has(structureId)) {
+      const structureData = cell.structures.get(structureId)!;
+      structureData.mesh.dispose();
+      cell.structures.delete(structureId);
+      console.log(`Removed structure ${structureId} from cell ${cellKey}`);
     }
   };
 
