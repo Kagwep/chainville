@@ -15,7 +15,7 @@
     },
     {
       "id": "two_lane_road_02",
-      "name": "Two-Lane Road with Bike Lanes",
+      "name": "Two-Lane Road v2",
       "type": "Enhanced",
       "modelFile": "models/roads/two_lane_road_02.glb",
       "thumbnail": "thumbnails/roads/two_lane_road_02.png",
@@ -138,11 +138,11 @@
       "heightClearance": 25
     },
     {
-      "id": "t_intersection",
+      "id": "t_intersection_01",
       "name": "T-Intersection",
       "type": "Junction",
-      "modelFile": "models/roads/t_intersection.glb",
-      "thumbnail": "thumbnails/roads/t_intersection.png",
+      "modelFile": "models/roads/t_intersection_01.glb",
+      "thumbnail": "thumbnails/roads/t_intersection_01.png",
       "width": 2,
       "cost": 200,
       "maintenanceCost": 20,

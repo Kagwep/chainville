@@ -164,6 +164,11 @@ const structuresByCategory = {
 
     setupCameraControls(scene);
 
+            // Resize handler
+      window.addEventListener('resize', () => {
+        engine.resize();
+    });
+
     return () => {
       engine.dispose();
     };
@@ -263,7 +268,7 @@ const calculateVerticalOffset = (mesh: BABYLON.Mesh): number => {
   return (boundingBox.maximum.y - boundingBox.minimum.y) * mesh.scaling.y / 2;
 };
 
-const showBuiltStructureDetails = (structureMetadata: StructureMetadata, structureId: string) => {
+const showBuiltStructureDetails = (structureMetadata: StructureMetadata, structureId: string, rootNode:any) => {
   if (!detailsPanelRef.current) return;
 
   console.log(structureId)
@@ -275,7 +280,7 @@ const showBuiltStructureDetails = (structureMetadata: StructureMetadata, structu
   const x = structureMetadata.x ?? 0;
   const y = structureMetadata.y ?? 0;
   const z = structureMetadata.z ?? 0;
-
+ 
   detailsText.text = `
     Type: ${structureMetadata.type}
     Category: ${structureMetadata.category}
@@ -295,7 +300,7 @@ const showBuiltStructureDetails = (structureMetadata: StructureMetadata, structu
     removeButton.onPointerUpObservable.add(() => {
       if (detailsPanel.metadata) {
         const { cellKey, structureId } = detailsPanel.metadata;
-        removeStructure(cellKey, structureId);
+        removeStructure(cellKey, structureId, rootNode);
         detailsPanel.isVisible = false; // Hide panel after removal
       }
     });
@@ -313,6 +318,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     try {
       currentPreviewResult = await BABYLON.SceneLoader.ImportMeshAsync("", "", structure.modelFile, sceneRef.current);
       const preview = currentPreviewResult.meshes[0] as BABYLON.Mesh;
+      preview.isPickable =false;
       preview.name = "structurePreview";
 
       // Set initial scaling
@@ -375,9 +381,6 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
         const newStructure = result.meshes[0] as BABYLON.Mesh;
 
-        // result.meshes.slice(1).forEach(mesh => {
-        //   mesh.isPickable = false;
-        // });
 
         newStructure.isPickable = true;
 
@@ -405,6 +408,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
         const structureData =  {
           type: selectedStructure.type,
           category: selectedStructure.category,
+          name: structureId,
           id: selectedStructure.id,
           x: newStructure.position.x,
           y: newStructure.position.y,
@@ -413,7 +417,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
         newStructure.metadata = structureData;
 
-        result.meshes.slice(1).forEach(mesh => {
+        result.meshes.forEach(mesh => {
           mesh.metadata = structureData;
         });
 
@@ -488,7 +492,8 @@ const createStructurePreview = async (structure: SelectedStructure) => {
           console.log("The meta",pickedMesh.metadata)
           console.log("The meta",pickedMesh)
           if (pickedMesh.metadata) {
-            showBuiltStructureDetails(pickedMesh.metadata as StructureMetadata, pickedMesh.name);
+            console.log(pickedMesh.parent);
+            showBuiltStructureDetails(pickedMesh.metadata as StructureMetadata, pickedMesh.metadata.name,pickedMesh.parent);
           } else {
             detailsPanelRef.current!.isVisible = false;
           }
@@ -586,7 +591,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
   const createMainMenuPanel = (advancedTexture: GUI.AdvancedDynamicTexture) => {
     const menuPanel = new GUI.StackPanel();
-    menuPanel.width = "200px";
+    menuPanel.width = "300px";
     menuPanel.height = "100%";
     menuPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     menuPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -595,16 +600,24 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     advancedTexture.addControl(menuPanel);
 
     const menuItems = [
-      { label: "Acquire Land", icon: "🏞️" },
+      { label: "Acquire District", icon: "🏞️" },
       { label: "Buildings", icon: "🏢" },
       { label: "Infrastructure", icon: "🚧" },
+      { label: "Parks/Recreation", icon: "🌳" },
+      { label: "City Planning", icon: "🗺️" },
+      { label: "Community Services", icon: "🤝" },
+      { label: "Environmental Management", icon: "♻️" },
+      { label: "Player Collaboration", icon: "👥" },
+      { label: "Trade Center", icon: "🔄" },
+      { label: "Events & Projects", icon: "🎉" }
     ];
 
     menuItems.forEach(item => {
       const button = GUI.Button.CreateSimpleButton(item.label, `${item.icon} ${item.label}`);
-      button.width = "180px";
+      button.width = "280px";
       button.height = "40px";
       button.color = "black";
+      button.paddingTop = 2;
       button.background = "lightgray";
       button.onPointerUpObservable.add(() => handleMenuItemClick(item.label));
       menuPanel.addControl(button);
@@ -839,7 +852,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   }
   const handleMenuItemClick = (label: string) => {
     setActiveMenuSection(label);
-    setShowLandPanel(label === "Acquire Land");
+    setShowLandPanel(label === "Acquire District");
     setShowBuildingPanel(label === "Buildings");
     setShowInfrastructurePanel(label === "Infrastructure");
   };
@@ -920,10 +933,10 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   
     if (showLandPanel) {
       subPanel.isVisible = true;
-      titleText.text = "Acquire Land";
+      titleText.text = "Acquire District";
       optionsList.clearControls();
       availableLand.forEach(land => {
-        const button = GUI.Button.CreateSimpleButton(`land_${land.id}`, `🏞️ Plot (${land.x}, ${land.z})`);
+        const button = GUI.Button.CreateSimpleButton(`land_${land.id}`, `🏞️ District (${land.x}, ${land.z})`);
         button.width = "280px";
         button.height = "30px";
         button.color = "black";
@@ -1146,11 +1159,13 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     }
   };
 
-  const removeStructure = (cellKey: string, structureId: string) => {
+  const removeStructure = (cellKey: string, structureId: string, rootNode: any) => {
+    rootNode.dispose();
+    
     const cell = gridCellsRef.current[cellKey];
+    console.log(cell.structures)
     if (cell && cell.structures.has(structureId)) {
       const structureData = cell.structures.get(structureId)!;
-      structureData.mesh.dispose();
       cell.structures.delete(structureId);
       console.log(`Removed structure ${structureId} from cell ${cellKey}`);
     }
