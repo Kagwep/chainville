@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Link } from 'react-router-dom'
+import AccountModal from './Account'
+import { useAccount } from 'wagmi'
 
 const navigation = [
   { name: 'About', href: '#' },
@@ -14,6 +16,8 @@ const navigation = [
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountModalOpen, setAccountModalOpen] = useState(false)
+  const { isConnected } = useAccount();
 
   return (
     <div className="bg-white">
@@ -47,9 +51,12 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-              Connect Wallet <span aria-hidden="true">&rarr;</span>
-            </a>
+            <button
+              onClick={() => setAccountModalOpen(true)}
+              className="text-sm font-semibold leading-6 text-gray-900 shadow p-2 bg-green-100 rounded"
+            >
+              {isConnected ? "Manage Wallet" : "Connect Wallet"} <span aria-hidden="true">&rarr;</span>
+            </button>
           </div>
         </nav>
         <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -86,14 +93,14 @@ export default function LandingPage() {
                     </a>
                   ))}
                 </div>
-                <div className="py-6">
-                  <a
-                    href="#"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                  >
-                    Connect Wallet
-                  </a>
-                </div>
+                <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+                    <button
+                      onClick={() => setAccountModalOpen(true)}
+                      className="text-sm font-semibold leading-6 text-gray-900"
+                    >
+                      {isConnected ? "Manage Wallet" : "Connect Wallet"} <span aria-hidden="true">&rarr;</span>
+                    </button>
+                  </div>
               </div>
             </div>
           </DialogPanel>
@@ -122,7 +129,7 @@ export default function LandingPage() {
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                to="/game"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="rounded-md bg-purple-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Start Building
               </Link>
@@ -133,6 +140,7 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+      <AccountModal isOpen={accountModalOpen} onClose={() => setAccountModalOpen(false)} />
     </div>
   )
 }
