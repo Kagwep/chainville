@@ -1,3 +1,5 @@
+import CONTRACTAbi from '../abi/ChainVille.json'
+
 export const CHAINVILLE_EMOJIS = {
     // Buildings and Infrastructure
     HOUSE: "🏠",
@@ -97,3 +99,8 @@ export const CHAINVILLE_EMOJIS = {
     TROPHY: "🏆",
     GOAL: "🎯"
 };
+
+
+export const CONTRACT_ADDRESS = "0x4f259F00EFa16dB2e20CC6C7D1f2B0719f63ecc5";
+
+export const ChainVilleContractAbi = CONTRACTAbi;

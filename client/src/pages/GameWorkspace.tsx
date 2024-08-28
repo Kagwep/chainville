@@ -11,6 +11,9 @@ import WaterInfrastructure from '../structures/infrastructure/Water.json';
 import PowerInfrastructure from '../structures/infrastructure/Power.json';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { CHAINVILLE_EMOJIS } from '../constants';
+import { useAcquireDistrict } from '../utils/ContractCalls';
+import { useAccount, useBalance } from 'wagmi'
+import { formatEther } from 'viem'
 
 const GRID_SIZE = 40;
 const CELL_SIZE = 40;
@@ -30,7 +33,7 @@ interface BuildOption {
 }
 
 interface TopPanelInfo {
-  balance: number;
+  balance: string;
   walletAddress: string;
 }
 
@@ -88,7 +91,20 @@ const GameWorkspace: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isPlacementMode, setIsPlacementMode] = useState(false);
   const detailsPanelRef = useRef<GUI.Rectangle | null>(null);
+  const guiTextureRef = useRef<GUI.AdvancedDynamicTexture | null>(null);
+  const statusTextRef = useRef<GUI.TextBlock | null>(null);
+  const guiContainerRef = useRef<GUI.Rectangle | null>(null);
   let currentPreviewResult: BABYLON.ISceneLoaderAsyncResult | null = null;
+
+  const infoTextRef = useRef<GUI.TextBlock | null>(null);
+
+
+  const { acquireDistrict, isAcquiring, isConfirming, isConfirmed, error } = useAcquireDistrict();
+
+  const { address } = useAccount()
+  const { data: balanceData } = useBalance({
+    address: address,
+  })
 
 // Organize structures by their actual categories
 const structuresByCategory = {
@@ -104,6 +120,8 @@ const structuresByCategory = {
   const [showLandPanel, setShowLandPanel] = useState<boolean>(false);
   const [showBuildingPanel, setShowBuildingPanel] = useState<boolean>(false);
   const [showInfrastructurePanel, setShowInfrastructurePanel] = useState<boolean>(false);
+  const [status, setStatus] = useState('')
+  const [districtName, setDistrictName] = useState('')
 
   const SUB_GRID_SIZE = 40; // 4x4 sub-grid within each cell (logical, not physical)
   const STRUCTURE_SCALE = 10; // Structures will be 20% of the sub-cell size
@@ -145,10 +163,9 @@ const structuresByCategory = {
   };
 
 
-
   const [topPanelInfo, setTopPanelInfo] = useState<TopPanelInfo>({
-    balance: 1000000,
-    walletAddress: '0x1234...5678',
+    balance: ``,
+    walletAddress: '',
   });
 
   useEffect(() => {
@@ -173,6 +190,27 @@ const structuresByCategory = {
       engine.dispose();
     };
   }, []);
+
+
+
+  useEffect(() => {
+    if (address && balanceData) {
+      const formattedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`
+      const formattedBalance = `${formatEther(balanceData.value)}`
+      const newFormattedBalance = parseFloat(formattedBalance).toFixed(4); 
+      
+      setTopPanelInfo({
+        balance: newFormattedBalance,
+        walletAddress: formattedAddress,
+      })
+
+      console.log(newFormattedBalance)
+
+      if (infoTextRef.current){
+        infoTextRef.current.text = `Balance: $${newFormattedBalance} | Wallet: ${formattedAddress}`;
+      }
+    }
+  }, [address, balanceData, setTopPanelInfo,infoTextRef.current])
 
   const createScene = (engine: BABYLON.Engine): BABYLON.Scene => {
     const scene = new BABYLON.Scene(engine);
@@ -515,6 +553,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
   const createGUI = (scene: BABYLON.Scene) => {
     const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    guiTextureRef.current = advancedTexture;
 
     // Create top panel for info display
     createTopPanel(advancedTexture);
@@ -543,19 +582,16 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     infoText.height = "30px";
     infoText.color = "black";
     topPanel.addControl(infoText);
+    infoTextRef.current = infoText;
 
     // Update the info text
     const updateInfoText = () => {
-      infoText.text = `Balance: $${topPanelInfo.balance.toLocaleString()} | Wallet: ${topPanelInfo.walletAddress}`;
+      infoText.text = `Balance: $${topPanelInfo.balance} | Wallet: ${topPanelInfo.walletAddress}`;
     };
 
     updateInfoText();
 
     // Update the info every second (you can adjust this as needed)
-    setInterval(() => {
-      setTopPanelInfo(prev => ({...prev, balance: prev.balance + 100}));
-      updateInfoText();
-    }, 1000);
   };
 
   const createBottomLeftPanel = (advancedTexture: GUI.AdvancedDynamicTexture) => {
@@ -574,18 +610,17 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     infoText.color = "black";
     topPanel.addControl(infoText);
 
+    //infoTextRef.current = infoText;
+
     // Update the info text
     const updateLogText = () => {
-      infoText.text = `Balance: $${topPanelInfo.balance.toLocaleString()} | Wallet: ${topPanelInfo.walletAddress}`;
+      infoText.text = `Balance: $${topPanelInfo.balance} | Wallet: ${topPanelInfo.walletAddress}`;
     };
 
     updateLogText();
 
     // Update the info every second (you can adjust this as needed)
-    setInterval(() => {
-      setTopPanelInfo(prev => ({...prev, balance: prev.balance + 100}));
-      updateLogText();
-    }, 1000);
+
   };
 
 
@@ -755,7 +790,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
 
     // Add keyboard controls for panning
     scene.onKeyboardObservable.add((kbInfo) => {
-      if (isInputFocused) return;
+      if (inputTextRef.current) return;
       let pan = 1; // Adjust this value to change pan speed
       switch (kbInfo.type) {
         case BABYLON.KeyboardEventTypes.KEYDOWN:
@@ -858,13 +893,15 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   };
 
   const acquireLand = (x: number, z: number) => {
+    if (!sceneRef.current && !guiTextureRef.current) return;
     const key = `${x}_${z}`;
-    if (!gridCellsRef.current[key].acquired) {
-      gridCellsRef.current[key].acquired = true;
+    if (!gridCellsRef.current[key].acquired && sceneRef.current && guiTextureRef.current) {
+       gridCellsRef.current[key].acquired = true;
       (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1); //BABYLON.Color3(0.7, 0.7, 1)
       console.log(`Acquired land at ${x}, ${z}`);
       zoomToCell(x, z);
       updateAvailableLand();
+      createAcquireDistrictPanel(sceneRef.current, x, z,guiTextureRef.current)
     }
   };
 
@@ -1189,7 +1226,110 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   };
 
 
+  function createAcquireDistrictPanel(scene: BABYLON.Scene, x: number, y: number, advancedTexture : GUI.AdvancedDynamicTexture) {
+    // Container
+    const guiContainer = new GUI.Rectangle();
+    guiContainer.alpha = 0.9;
+    guiContainer.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER
+    guiContainer.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER
+    guiContainer.width = "400px";
+    guiContainer.height = "250px";
+    guiContainer.cornerRadius = 20;
+    guiContainer.left = "20px";
+    guiContainer.top = "-20px";
+    guiContainer.color = "white";
+    guiContainer.thickness = 0;
+    guiContainer.background = "black";
+    guiContainer.name = "guicontainer"
+    guiContainer.alpha = 0.5;
+    advancedTexture.addControl(guiContainer);
+
+    guiContainerRef.current = guiContainer;
+
+    // name panel
+    const namePanel = new GUI.StackPanel();
+    namePanel.verticalAlignment =
+        GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    namePanel.horizontalAlignment =
+        GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    namePanel.top = -45;
+    namePanel.left = 0;
+    namePanel.name = "namePanel"
+    guiContainer.addControl(namePanel);
+
+    const inputText = new GUI.InputText();
+    inputText.alpha = 2;
+    inputText.autoStretchWidth = false;
+    inputText.width = "300px";
+    inputText.height = "35px";
+    inputText.fontSize = 15;
+    inputText.left = "0px";
+    inputText.placeholderText = "Enter name...";
+    inputText.color = "white";
+    inputText.background = "black";
+    inputText.focusedBackground = "black";
+    inputText.thickness = 0;
+    inputText.name = "inputText"
+    namePanel.addControl(inputText)
+    inputTextRef.current = inputText
   
+    const acquireButton = GUI.Button.CreateSimpleButton("acquireButton", "Acquire District")
+    acquireButton.width = "140px"
+    acquireButton.height = "40px"
+    acquireButton.color = "white"
+    acquireButton.cornerRadius = 10
+    acquireButton.background = "green"
+    acquireButton.thickness = 0;
+    acquireButton.paddingTop = 5;
+    namePanel.addControl(acquireButton)
+  
+    const statusText = new GUI.TextBlock()
+    statusText.height = "70px"
+    statusText.color = "white"
+    statusText.fontSize = 14 // Reduced font size
+    statusText.textWrapping = true // Enable text wrapping
+    statusText.resizeToFit = true // Automatically resize text to fit
+    statusText.paddingTop = "5px"
+    statusText.paddingBottom = "5px"
+    namePanel.addControl(statusText)
+
+    statusTextRef.current = statusText;
+  
+    acquireButton.onPointerUpObservable.add(async () => {
+      if (inputText.text) {
+        try {
+          await acquireDistrict(x, y, 'fdfgdfg', inputText.text) // Empty string for metadataUrl
+          statusText.text = "Acquiring district..."
+        } catch (err: any) {
+          statusText.text = "Failed to acquire district: " + err.message
+        }
+      } else {
+        statusText.text = "Please enter a district name"
+      }
+    })
+  
+    // Update status based on transaction state
+
+  
+    return namePanel
+  }
+  
+  useEffect(() => {
+    if(statusTextRef.current){
+      if (isAcquiring) statusTextRef.current.text = "Sending transaction..."
+      if (isConfirming) statusTextRef.current.text = "Confirming transaction..."
+      if (isConfirmed) {
+        statusTextRef.current.text = "District acquired successfully!"
+        if (guiTextureRef.current && guiContainerRef.current){
+          guiTextureRef.current.removeControl(guiContainerRef.current)
+          inputTextRef.current = null;
+        }
+      }
+      if (error) statusTextRef.current.text = "Error: " + error.message
+    }
+
+  }, [isAcquiring, isConfirming, isConfirmed, error])
+
   // Initial update of available land
   useEffect(() => {
     updateAvailableLand();
