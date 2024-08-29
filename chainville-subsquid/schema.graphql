@@ -1,0 +1,59 @@
+type District @entity {
+  id: ID!
+  owner: Bytes!
+  tokenId: BigInt!
+  x: BigInt!
+  y: BigInt!
+  metadataUrl: String!
+  districtName: String!
+  stateHash: Bytes
+  lastUpdate: BigInt
+  infrastructures: [Infrastructure!]! @derivedFrom(field: "district")
+}
+
+type Infrastructure @entity {
+  id: ID!
+  district: District!
+  infrastructureType: String!
+}
+
+type DistrictAcquiredEvent @entity {
+  id: ID!
+  owner: Bytes!
+  tokenId: BigInt!
+  x: BigInt!
+  y: BigInt!
+  metadataUrl: String!
+  districtName: String!
+  timestamp: BigInt!
+  block: BigInt!
+  transactionHash: String!
+}
+
+type DistrictStateUpdatedEvent @entity {
+  id: ID!
+  tokenId: BigInt!
+  metadataUrl: String!
+  stateHash: Bytes!
+  timestamp: BigInt!
+  block: BigInt!
+  transactionHash: String!
+}
+
+type InfrastructureBuiltEvent @entity {
+  id: ID!
+  tokenId: BigInt!
+  infrastructureType: String!
+  timestamp: BigInt!
+  block: BigInt!
+  transactionHash: String!
+}
+
+type WithdrawalEvent @entity {
+  id: ID!
+  owner: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  block: BigInt!
+  transactionHash: String!
+}
