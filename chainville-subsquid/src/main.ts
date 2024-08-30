@@ -1,6 +1,7 @@
 import {TypeormDatabase} from '@subsquid/typeorm-store'
 import {processor} from './processor'
 import {District, DistrictAcquiredEvent, DistrictStateUpdatedEvent, InfrastructureBuiltEvent, WithdrawalEvent} from './model'
+import { ethers } from 'ethers';
 
 function hexToBigInt(hex: string): bigint {
     if (hex.startsWith('0x')) {
@@ -17,7 +18,7 @@ function hexToUint8Array(hex: string): Uint8Array {
 }
 
 processor.run(new TypeormDatabase(), async (ctx) => {
-    const contractAddress = '0x7c467a077F72c5ab2A65505fdcbBEd83A35D390b'.toLowerCase()
+    const contractAddress = '0x4f259F00EFa16dB2e20CC6C7D1f2B0719f63ecc5'.toLowerCase()
     
     for (let block of ctx.blocks) {
         for (let log of block.logs) {
@@ -45,13 +46,15 @@ async function handleDistrictAcquired(ctx: any, log: any, block: any) {
     const owner = hexToUint8Array(log.topics[1]);
     const tokenId = hexToBigInt(log.topics[2]);
     const x = hexToBigInt(log.data.slice(0, 66));
-    const y = hexToBigInt('0x' + log.data.slice(66, 130));
-    const metadata_url = ctx.decodeBytes32String('0x' + log.data.slice(130, 194));
-    const district_name = ctx.decodeBytes32String('0x' + log.data.slice(194));
+    const y = hexToBigInt('0x' + log.data.slice(66, 130))
+    const metadata_url = safeDecodeBytes('0x' + log.data.slice(130, 194));
+    const district_name = safeDecodeBytes('0x' + log.data.slice(194));
+
 
     const district = new District({
         id: tokenId.toString(),
         owner,
+        tokenId: tokenId,
         x,
         y,
         metadataUrl: metadata_url,
@@ -77,7 +80,7 @@ async function handleDistrictAcquired(ctx: any, log: any, block: any) {
 
 async function handleDistrictStateUpdated(ctx: any, log: any, block: any) {
     const tokenId = hexToBigInt(log.topics[1]);
-    const metadata_url = ctx.decodeBytes32String(log.data.slice(0, 66));
+    const metadata_url = safeDecodeBytes(log.data.slice(0, 66));
     const stateHash = hexToUint8Array('0x' + log.data.slice(66, 130));
     const timestamp = hexToBigInt('0x' + log.data.slice(130));
 
@@ -103,7 +106,7 @@ async function handleDistrictStateUpdated(ctx: any, log: any, block: any) {
 
 async function handleInfrastructureBuilt(ctx: any, log: any, block: any) {
     const tokenId = hexToBigInt(log.topics[1]);
-    const infrastructureType = ctx.decodeBytes32String(log.data);
+    const infrastructureType = safeDecodeBytes(log.data);
 
     const event = new InfrastructureBuiltEvent({
         id: log.id,
@@ -129,4 +132,26 @@ async function handleWithdrawal(ctx: any, log: any, block: any) {
         transactionHash: log.transaction?.hash || ''
     });
     await ctx.store.save(event);
+}
+
+function safeDecodeBytes(bytes: string): string {
+    try {
+        // Remove '0x' prefix if present
+        const cleanHex = bytes.startsWith('0x') ? bytes.slice(2) : bytes;
+        
+        // Convert hex to Uint8Array
+        const uint8Array = new Uint8Array(cleanHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        
+        // Find the index of the first zero byte (null terminator)
+        const nullTerminatorIndex = uint8Array.indexOf(0);
+        
+        // Slice the array up to the null terminator (or use the whole array if no null terminator)
+        const slicedArray = nullTerminatorIndex !== -1 ? uint8Array.slice(0, nullTerminatorIndex) : uint8Array;
+        
+        // Decode the sliced array to UTF-8 string
+        return ethers.toUtf8String(slicedArray);
+    } catch (error) {
+        console.error('Error decoding bytes to string:', error);
+        return ''; // Return empty string in case of error
+    }
 }
