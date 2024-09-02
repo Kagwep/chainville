@@ -14,6 +14,10 @@ import { CHAINVILLE_EMOJIS } from '../constants';
 import { useAcquireDistrict } from '../utils/ContractCalls';
 import { useAccount, useBalance } from 'wagmi'
 import { formatEther } from 'viem'
+import { useApolloClient } from '@apollo/client';
+import { District } from '../utils/types';
+import { fetchDistricts, fetchUserDistricts } from '../utils/subsquidInteract';
+import MyDistrictsPanel from '../components/MyDistrictsPanel';
 
 const GRID_SIZE = 40;
 const CELL_SIZE = 40;
@@ -98,6 +102,10 @@ const GameWorkspace: React.FC = () => {
 
   const infoTextRef = useRef<GUI.TextBlock | null>(null);
 
+  const client = useApolloClient();
+  const [districts, setDistricts] = useState<Map<string, District> | null>(null);
+  const [userDistricts, setUserDistricts] = useState<Map<string, District> | null>(null);
+
 
   const { acquireDistrict, isAcquiring, isConfirming, isConfirmed, error } = useAcquireDistrict();
 
@@ -120,6 +128,7 @@ const structuresByCategory = {
   const [showLandPanel, setShowLandPanel] = useState<boolean>(false);
   const [showBuildingPanel, setShowBuildingPanel] = useState<boolean>(false);
   const [showInfrastructurePanel, setShowInfrastructurePanel] = useState<boolean>(false);
+  const [showMyDistrictsPanel, setShowMyDistrictsPanel] = useState<boolean>(false);
   const [status, setStatus] = useState('')
   const [districtName, setDistrictName] = useState('')
 
@@ -248,6 +257,7 @@ const structuresByCategory = {
   };
 
   const createGrid = (scene: BABYLON.Scene) => {
+
     for (let x = 0; x < GRID_SIZE; x++) {
       for (let z = 0; z < GRID_SIZE; z++) {
         const cell = BABYLON.MeshBuilder.CreateGround(`cell_${x}_${z}`, {
@@ -257,12 +267,16 @@ const structuresByCategory = {
         cell.position.x = x * CELL_SIZE + CELL_SIZE / 2;
         cell.position.z = z * CELL_SIZE + CELL_SIZE / 2;
         const material = new BABYLON.StandardMaterial(`cellMat_${x}_${z}`, scene);
-        material.diffuseColor = new BABYLON.Color3(0.7, 0.7, 1); //BABYLON.Color3(0.1, 0.6, 0.1);
+
+        const isAcquired = districts?.has(`${x}_${z}`);
+
+        material.diffuseColor = isAcquired ? new BABYLON.Color3(0.1, 0.6, 0.1) : new BABYLON.Color3(0.7, 0.7, 1); //BABYLON.Color3(0.1, 0.6, 0.1);
+
         cell.material = material;
 
         gridCellsRef.current[`${x}_${z}`] = {
           mesh: cell,
-          acquired: false,
+          acquired: isAcquired ? isAcquired : false,
           structures: new Map<string, StructureData>(),
         };
 
@@ -567,6 +581,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     createBottomLeftPanel(advancedTexture);
 
     createBuiltDetailsPanel(advancedTexture);
+
   };
 
   const createTopPanel = (advancedTexture: GUI.AdvancedDynamicTexture) => {
@@ -644,7 +659,8 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       { label: "Environmental Management", icon: "♻️" },
       { label: "Player Collaboration", icon: "👥" },
       { label: "Trade Center", icon: "🔄" },
-      { label: "Events & Projects", icon: "🎉" }
+      { label: "Events & Projects", icon: "🎉" },
+      { label: "My Districts", icon: "🏙️" }
     ];
 
     menuItems.forEach(item => {
@@ -774,6 +790,18 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   }
 
 
+
+  useEffect(() => {
+    async function getDistricts() {
+      const districtMap = await fetchDistricts(client);
+      const userDistrictMap = await fetchUserDistricts(client,address as string);
+      setDistricts(districtMap);
+      setUserDistricts(userDistrictMap)
+      updateAquiredLand(districtMap)
+    }
+    getDistricts();
+  }, [client]);
+
   const setupCameraControls = (scene: BABYLON.Scene) => {
     if (!cameraRef.current) return;
 
@@ -876,6 +904,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   };
 
   const zoomToCell = (x: number, z: number) => {
+    console.log("called155454",x,z)
     if (!cameraRef.current) return;
     const camera = cameraRef.current;
     camera.setTarget(new BABYLON.Vector3(
@@ -890,6 +919,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     setShowLandPanel(label === "Acquire District");
     setShowBuildingPanel(label === "Buildings");
     setShowInfrastructurePanel(label === "Infrastructure");
+    setShowMyDistrictsPanel(label === "My Districts")
   };
 
   const acquireLand = (x: number, z: number) => {
@@ -906,6 +936,18 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   };
 
 
+  const updateAquiredLand = (districts: Map<string, District>) => {
+    
+    districts?.forEach((district, key) => {
+      console.log("called",key,gridCellsRef.current[key].acquired )
+      if (!gridCellsRef.current[key].acquired && sceneRef.current && guiTextureRef.current) {
+        console.log("called")
+        gridCellsRef.current[key].acquired = true;
+        (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1); //BABYLON.Color3(0.7, 0.7, 1)
+        updateAvailableLand();
+      }
+    })
+  }
   
 
   const updateAvailableLand = () => {
@@ -1011,11 +1053,20 @@ const createStructurePreview = async (structure: SelectedStructure) => {
         button.onPointerUpObservable.add(() => showStructureOptions(option.id,advancedTexture,'infrastructure' ));
         optionsList.addControl(button);
       });
+    }else if (showMyDistrictsPanel){
+      MyDistrictsPanel(
+        advancedTexture,
+        userDistricts,
+        (districtKey: string) => { /* Handle update */ },
+        (districtKey: string) => { /* Handle sell */ },
+        (districtKey: string) => { /* Handle rollback */ },
+        (x: number,y: number) => {zoomToCell(x,y)}
+      ) 
     } else {
       subPanel.isVisible = false;
     }
   
-  }, [showLandPanel, showBuildingPanel, showInfrastructurePanel, availableLand, buildingOptions, infrastructureOptions]);
+  }, [showLandPanel, showBuildingPanel, showInfrastructurePanel, availableLand, buildingOptions, infrastructureOptions,userDistricts]);
 
   const showStructureOptions = (category: string,advancedTexture: GUI.AdvancedDynamicTexture,buildingType: string) => {
     
