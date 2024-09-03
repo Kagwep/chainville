@@ -1,7 +1,8 @@
 import {TypeormDatabase} from '@subsquid/typeorm-store'
 import {processor} from './processor'
 import {District, DistrictAcquiredEvent, DistrictStateUpdatedEvent, InfrastructureBuiltEvent, WithdrawalEvent} from './model'
-import { ethers } from 'ethers';
+import { Log } from '@subsquid/evm-processor'
+import { ethers } from 'ethers'
 
 function hexToBigInt(hex: string): bigint {
     if (hex.startsWith('0x')) {
@@ -17,6 +18,8 @@ function hexToUint8Array(hex: string): Uint8Array {
     return Uint8Array.from(Buffer.from(hex, 'hex'));
 }
 
+const abiCoder = new ethers.AbiCoder();
+
 processor.run(new TypeormDatabase(), async (ctx) => {
     const contractAddress = '0x4f259F00EFa16dB2e20CC6C7D1f2B0719f63ecc5'.toLowerCase()
     
@@ -25,16 +28,16 @@ processor.run(new TypeormDatabase(), async (ctx) => {
             if (log.address === contractAddress) {
                 switch (log.topics[0]) {
                     case '0x4045cf77ad22993c120d887aefbe691aaef22198f2cfce69d6e84a0b4b2688f1':
-                        await handleDistrictAcquired(ctx, log, block);
+                        await handleDistrictAcquired(ctx, log);
                         break;
                     case '0x682da7500ed1d681193a13a25809965530f6c712c778423543cb529e1b905cbd':
-                        await handleDistrictStateUpdated(ctx, log, block);
+                        await handleDistrictStateUpdated(ctx, log);
                         break;
                     case '0x33a67c5b967f5238ecb43ad0b8a4218d8f9ca732b7803fa4a693586e6c22c26f':
-                        await handleInfrastructureBuilt(ctx, log, block);
+                        await handleInfrastructureBuilt(ctx, log);
                         break;
                     case '0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65':
-                        await handleWithdrawal(ctx, log, block);
+                        await handleWithdrawal(ctx, log);
                         break;
                 }
             }
@@ -42,116 +45,107 @@ processor.run(new TypeormDatabase(), async (ctx) => {
     }
 })
 
-async function handleDistrictAcquired(ctx: any, log: any, block: any) {
-    const owner = hexToUint8Array(log.topics[1]);
-    const tokenId = hexToBigInt(log.topics[2]);
-    const x = hexToBigInt(log.data.slice(0, 66));
-    const y = hexToBigInt('0x' + log.data.slice(66, 130))
-    const metadata_url = safeDecodeBytes('0x' + log.data.slice(130, 194));
-    const district_name = safeDecodeBytes('0x' + log.data.slice(194));
-
-
-    const district = new District({
-        id: tokenId.toString(),
-        owner,
-        tokenId: tokenId,
-        x,
-        y,
-        metadataUrl: metadata_url,
-        districtName: district_name,
-        lastUpdate: BigInt(block.header.timestamp)
-    });
-    await ctx.store.save(district);
-
-    const event = new DistrictAcquiredEvent({
-        id: log.id,
-        owner,
-        tokenId,
-        x,
-        y,
-        metadataUrl: metadata_url,
-        districtName: district_name,
-        timestamp: BigInt(block.header.timestamp),
-        block: BigInt(block.header.height),
-        transactionHash: log.transaction?.hash || ''
-    });
-    await ctx.store.save(event);
-}
-
-async function handleDistrictStateUpdated(ctx: any, log: any, block: any) {
-    const tokenId = hexToBigInt(log.topics[1]);
-    const metadata_url = safeDecodeBytes(log.data.slice(0, 66));
-    const stateHash = hexToUint8Array('0x' + log.data.slice(66, 130));
-    const timestamp = hexToBigInt('0x' + log.data.slice(130));
-
-    const district = await ctx.store.get(District, tokenId.toString());
-    if (district) {
-        district.metadataUrl = metadata_url;
-        district.stateHash = stateHash;
-        district.lastUpdate = timestamp;
-        await ctx.store.save(district);
-    }
-
-    const event = new DistrictStateUpdatedEvent({
-        id: log.id,
-        tokenId,
-        metadataUrl: metadata_url,
-        stateHash,
-        timestamp,
-        block: BigInt(block.header.height),
-        transactionHash: log.transaction?.hash || ''
-    });
-    await ctx.store.save(event);
-}
-
-async function handleInfrastructureBuilt(ctx: any, log: any, block: any) {
-    const tokenId = hexToBigInt(log.topics[1]);
-    const infrastructureType = safeDecodeBytes(log.data);
-
-    const event = new InfrastructureBuiltEvent({
-        id: log.id,
-        tokenId,
-        infrastructureType,
-        timestamp: BigInt(block.header.timestamp),
-        block: BigInt(block.header.height),
-        transactionHash: log.transaction?.hash || ''
-    });
-    await ctx.store.save(event);
-}
-
-async function handleWithdrawal(ctx: any, log: any, block: any) {
-    const owner = hexToUint8Array(log.topics[1]);
-    const amount = hexToBigInt(log.data);
-
-    const event = new WithdrawalEvent({
-        id: log.id,
-        owner,
-        amount,
-        timestamp: BigInt(block.header.timestamp),
-        block: BigInt(block.header.height),
-        transactionHash: log.transaction?.hash || ''
-    });
-    await ctx.store.save(event);
-}
-
-function safeDecodeBytes(bytes: string): string {
+async function handleDistrictAcquired(ctx: any, log: Log) {
+    ctx.log.info(`DistrictAcquired Raw Data: ${log.data}`);
+    
     try {
-        // Remove '0x' prefix if present
-        const cleanHex = bytes.startsWith('0x') ? bytes.slice(2) : bytes;
-        
-        // Convert hex to Uint8Array
-        const uint8Array = new Uint8Array(cleanHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-        
-        // Find the index of the first zero byte (null terminator)
-        const nullTerminatorIndex = uint8Array.indexOf(0);
-        
-        // Slice the array up to the null terminator (or use the whole array if no null terminator)
-        const slicedArray = nullTerminatorIndex !== -1 ? uint8Array.slice(0, nullTerminatorIndex) : uint8Array;
-        
-        // Decode the sliced array to UTF-8 string
-        return ethers.toUtf8String(slicedArray);
+        const [x, y, metadata_url, district_name] = abiCoder.decode(
+            ['uint256', 'uint256', 'string', 'string'],
+            log.data
+        );
+
+        const owner = hexToUint8Array(log.topics[1]);
+        const tokenId = hexToBigInt(log.topics[2]);
+
+        ctx.log.info(`Decoded Metadata URL: ${metadata_url}`);
+        ctx.log.info(`Decoded District Name: ${district_name}`);
+
+        const event = new DistrictAcquiredEvent({
+            id: log.id,
+            owner,
+            tokenId,
+            x: BigInt(x.toString()),
+            y: BigInt(y.toString()),
+            metadataUrl: metadata_url,
+            districtName: district_name,
+            timestamp: BigInt(log.block.timestamp),
+            block: BigInt(log.block.height),
+            transactionHash: log.transaction?.hash || ''
+        });
+        await ctx.store.save(event);
     } catch (error) {
-        console.error('Error decoding bytes to string:', error);
-        return ''; // Return empty string in case of error
+        ctx.log.error(`Error decoding DistrictAcquired event: ${error}`);
+    }
+}
+
+async function handleDistrictStateUpdated(ctx: any, log: Log) {
+    ctx.log.info(`DistrictStateUpdated Raw Data: ${log.data}`);
+    
+    try {
+        const [metadata_url, stateHash, timestamp] = abiCoder.decode(
+            ['string', 'bytes32', 'uint256'],
+            log.data
+        );
+
+        const tokenId = hexToBigInt(log.topics[1]);
+
+        ctx.log.info(`Decoded Metadata URL: ${metadata_url}`);
+
+        const event = new DistrictStateUpdatedEvent({
+            id: log.id,
+            tokenId,
+            metadataUrl: metadata_url,
+            stateHash: stateHash,
+            timestamp: BigInt(timestamp.toString()),
+            block: BigInt(log.block.height),
+            transactionHash: log.transaction?.hash || ''
+        });
+        await ctx.store.save(event);
+    } catch (error) {
+        ctx.log.error(`Error decoding DistrictStateUpdated event: ${error}`);
+    }
+}
+
+async function handleInfrastructureBuilt(ctx: any, log: Log) {
+    ctx.log.info(`InfrastructureBuilt Raw Data: ${log.data}`);
+    
+    try {
+        const [infrastructureType] = abiCoder.decode(['string'], log.data);
+        const tokenId = hexToBigInt(log.topics[1]);
+
+        ctx.log.info(`Decoded Infrastructure Type: ${infrastructureType}`);
+
+        const event = new InfrastructureBuiltEvent({
+            id: log.id,
+            tokenId,
+            infrastructureType,
+            timestamp: BigInt(log.block.timestamp),
+            block: BigInt(log.block.height),
+            transactionHash: log.transaction?.hash || ''
+        });
+        await ctx.store.save(event);
+    } catch (error) {
+        ctx.log.error(`Error decoding InfrastructureBuilt event: ${error}`);
+    }
+}
+
+async function handleWithdrawal(ctx: any, log: Log) {
+    ctx.log.info(`Withdrawal Raw Data: ${log.data}`);
+    
+    try {
+        const [amount] = abiCoder.decode(['uint256'], log.data);
+        const owner = hexToUint8Array(log.topics[1]);
+
+        const event = new WithdrawalEvent({
+            id: log.id,
+            owner,
+            amount: BigInt(amount.toString()),
+            timestamp: BigInt(log.block.timestamp),
+            block: BigInt(log.block.height),
+            transactionHash: log.transaction?.hash || ''
+        });
+        await ctx.store.save(event);
+    } catch (error) {
+        ctx.log.error(`Error decoding Withdrawal event: ${error}`);
     }
 }

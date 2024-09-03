@@ -2,31 +2,32 @@ import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, gql } from '@apo
 
 export const GET_ACQUIRED_DISTRICTS = gql`
   query GET_ACQUIRED_DISTRICTS {
-    districts {
+    districtAcquiredEvents {
       id
+      metadataUrl
       owner
+      timestamp
       tokenId
+      transactionHash
       x
       y
-      metadataUrl
       districtName
-      lastUpdate
     }
   }
 `;
 
 export const GET_USER_DISTRICTS = gql`
-  query GET_USER_DISTRICTS($owner: String!) {
-    districts(where: { owner: $owner }) {
-      id
-      owner
-      tokenId
-      x
-      y
-      metadataUrl
-      districtName
-      lastUpdate
-      stateHash
-    }
+  query GET_USER_DISTRICTS{
+  districtAcquiredEvents {
+    id
+    metadataUrl
+    owner
+    timestamp
+    tokenId
+    transactionHash
+    x
+    y
+    districtName
+  }
   }
 `;

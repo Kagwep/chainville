@@ -11,13 +11,16 @@ import WaterInfrastructure from '../structures/infrastructure/Water.json';
 import PowerInfrastructure from '../structures/infrastructure/Power.json';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { CHAINVILLE_EMOJIS } from '../constants';
-import { useAcquireDistrict } from '../utils/ContractCalls';
-import { useAccount, useBalance } from 'wagmi'
-import { formatEther } from 'viem'
+import { useAcquireDistrict, useUpdateDistrict } from '../utils/ContractCalls';
+import { useAccount, useBalance, useSignMessage } from 'wagmi'
+import { encodePacked, formatEther, keccak256 } from 'viem'
 import { useApolloClient } from '@apollo/client';
 import { District } from '../utils/types';
-import { fetchDistricts, fetchUserDistricts } from '../utils/subsquidInteract';
+import { fetchDistricts, fetchUserDistricts, normalizeAddress } from '../utils/subsquidInteract';
 import MyDistrictsPanel from '../components/MyDistrictsPanel';
+import {ethers} from "ethers"
+import { uploadToIPFS } from '../Infura';
+import verifyMetadata from '../utils/verify';
 
 const GRID_SIZE = 40;
 const CELL_SIZE = 40;
@@ -97,8 +100,11 @@ const GameWorkspace: React.FC = () => {
   const detailsPanelRef = useRef<GUI.Rectangle | null>(null);
   const guiTextureRef = useRef<GUI.AdvancedDynamicTexture | null>(null);
   const statusTextRef = useRef<GUI.TextBlock | null>(null);
+  const bottomPanelLogRef= useRef<GUI.TextBlock | null>(null);
   const guiContainerRef = useRef<GUI.Rectangle | null>(null);
   let currentPreviewResult: BABYLON.ISceneLoaderAsyncResult | null = null;
+  const [jsonFile, setJsonFile] = useState<string | null>(null);
+  const [fileHash, setFileHash] = useState<string | null>(null);
 
   const infoTextRef = useRef<GUI.TextBlock | null>(null);
 
@@ -108,11 +114,14 @@ const GameWorkspace: React.FC = () => {
 
 
   const { acquireDistrict, isAcquiring, isConfirming, isConfirmed, error } = useAcquireDistrict();
+  const { updateDistrictState, isUpdating, isConfirming: updateStateConfirming, isConfirmed: isConfirmedUpdateState, error: errorUpdateState } = useUpdateDistrict();
 
   const { address } = useAccount()
   const { data: balanceData } = useBalance({
     address: address,
   })
+
+  const { signMessageAsync } = useSignMessage();
 
 // Organize structures by their actual categories
 const structuresByCategory = {
@@ -632,6 +641,8 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       infoText.text = `Balance: $${topPanelInfo.balance} | Wallet: ${topPanelInfo.walletAddress}`;
     };
 
+    bottomPanelLogRef.current = infoText 
+
     updateLogText();
 
     // Update the info every second (you can adjust this as needed)
@@ -904,7 +915,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
   };
 
   const zoomToCell = (x: number, z: number) => {
-    console.log("called155454",x,z)
+   
     if (!cameraRef.current) return;
     const camera = cameraRef.current;
     camera.setTarget(new BABYLON.Vector3(
@@ -912,7 +923,9 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       0,
       (z + 0.5) * CELL_SIZE
     ));
+    console.log("zoomed",x,z)
     camera.radius = 30; // Zoom level when focusing on a cell
+
   }
   const handleMenuItemClick = (label: string) => {
     setActiveMenuSection(label);
@@ -922,19 +935,111 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     setShowMyDistrictsPanel(label === "My Districts")
   };
 
+  const onToCell = async (x: number,z: number,tokenId: string) => {
+    if (!cameraRef.current) return;
+    const camera = cameraRef.current;
+    camera.setTarget(new BABYLON.Vector3(
+      (parseFloat(x.toString()) + 0.5) * CELL_SIZE,
+      0,
+      (parseFloat(z.toString()) + 0.5) * CELL_SIZE
+    ));
+    console.log("zoomed",x,z)
+    camera.radius = 30; // Zoom level when focusing on a cell
+
+
+    const ipfsUrl = 'https://hambre.infura-ipfs.io/ipfs/QmXUjBPbNwKpM7v2Gica2h9ByXz4w1G5EZQ6EtkFfEsPax'
+    const originalStateHash = '0xf6ab992b84134f903976a4579456c17de15b84985d42070b07ebb690e4971456'
+
+    if (address){
+      const isValid = await verifyMetadata(ipfsUrl, originalStateHash,address, signMessageAsync);
+      if (isValid) {
+        console.log("file valid")
+      } else {
+        // Handle the case where verification failed
+        console.log("file invalid")
+      }
+    }
+
+
+  }
+
   const acquireLand = (x: number, z: number) => {
     if (!sceneRef.current && !guiTextureRef.current) return;
     const key = `${x}_${z}`;
     if (!gridCellsRef.current[key].acquired && sceneRef.current && guiTextureRef.current) {
-       gridCellsRef.current[key].acquired = true;
-      (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1); //BABYLON.Color3(0.7, 0.7, 1)
-      console.log(`Acquired land at ${x}, ${z}`);
-      zoomToCell(x, z);
+      //  gridCellsRef.current[key].acquired = true;
+      // (gridCellsRef.current[key].mesh.material as BABYLON.StandardMaterial).diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1); //BABYLON.Color3(0.7, 0.7, 1)
+      // console.log(`Acquired land at ${x}, ${z}`);
+      // zoomToCell(x, z);
       updateAvailableLand();
       createAcquireDistrictPanel(sceneRef.current, x, z,guiTextureRef.current)
     }
   };
 
+  const updateDistrict =  async (districtKey: string) => {
+    
+    if (gridCellsRef.current[districtKey].acquired && sceneRef.current && guiTextureRef.current && address && districts) { 
+
+      const district = districts.get(districtKey)
+       
+      if ( normalizeAddress(address) !== normalizeAddress(district?.owner as string)) return;
+
+      const structures = gridCellsRef.current[districtKey].structures
+
+      const structuresObject = Object.fromEntries(
+        Array.from(structures.entries()).map(([key, value]) => {
+          const { mesh, ...structureWithoutMesh } = value;
+          return [key, structureWithoutMesh];
+        })
+      );
+    
+      // Convert to JSON string
+      const jsonData = JSON.stringify(structuresObject, null, 2);
+
+          // Create a message to sign
+      const message = `Update district state: ${jsonData}`;
+
+      // Sign the message
+      const signature = await signMessageAsync({ message });
+
+    
+      // Hash the JSON data
+      // Sign the hash
+      const stateHash = keccak256(
+        encodePacked(
+          ['string', 'address', 'bytes'],
+          [jsonData, address, signature]
+        )
+      );
+  
+      const metadata_url = await uploadToIPFS(jsonData);
+
+      console.log('JSON File:', jsonData);
+      console.log('File Hash:', stateHash);
+
+      console.log("structurs",structures)
+      
+
+      console.log(" metadata_url", metadata_url)
+
+      if(district && metadata_url){
+        
+      try {
+        await updateDistrictState(parseInt(district.tokenId), metadata_url, stateHash) // Empty string for metadataUrl
+        if (bottomPanelLogRef.current){
+           bottomPanelLogRef.current.text = "Updating district..."
+        }
+      } catch (err: any) {
+        if (bottomPanelLogRef.current){
+          bottomPanelLogRef.current.text = "Failed to Update district: " + err.message
+        }
+      }
+      }
+
+    }
+
+
+  }
 
   const updateAquiredLand = (districts: Map<string, District>) => {
     
@@ -1057,10 +1162,10 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       MyDistrictsPanel(
         advancedTexture,
         userDistricts,
-        (districtKey: string) => { /* Handle update */ },
+        (districtKey: string) => { return updateDistrict(districtKey);},
         (districtKey: string) => { /* Handle sell */ },
         (districtKey: string) => { /* Handle rollback */ },
-        (x: number,y: number) => {zoomToCell(x,y)}
+        (x: number,z: number,tokenId:string) => {return onToCell(x,z,tokenId)}
       ) 
     } else {
       subPanel.isVisible = false;
@@ -1308,6 +1413,20 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     namePanel.name = "namePanel"
     guiContainer.addControl(namePanel);
 
+    const cancelButton = GUI.Button.CreateSimpleButton("cancelButton", "❌")
+    cancelButton.width = "140px"
+    cancelButton.height = "40px"
+    cancelButton.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    cancelButton.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP
+    cancelButton.color = "white"
+    cancelButton.cornerRadius = 10
+    cancelButton.background = "transparent"
+    cancelButton.thickness = 0;
+    cancelButton.paddingTop = 1;
+    cancelButton.paddingBottom = 5;
+
+    namePanel.addControl(cancelButton)
+
     const inputText = new GUI.InputText();
     inputText.alpha = 2;
     inputText.autoStretchWidth = false;
@@ -1349,7 +1468,7 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     acquireButton.onPointerUpObservable.add(async () => {
       if (inputText.text) {
         try {
-          await acquireDistrict(x, y, 'fdfgdfg', inputText.text) // Empty string for metadataUrl
+          await acquireDistrict(x, y, '', inputText.text) // Empty string for metadataUrl
           statusText.text = "Acquiring district..."
         } catch (err: any) {
           statusText.text = "Failed to acquire district: " + err.message
@@ -1359,6 +1478,11 @@ const createStructurePreview = async (structure: SelectedStructure) => {
       }
     })
   
+    cancelButton.onPointerUpObservable.add(async () => {
+      if (guiContainerRef.current){
+        advancedTexture.removeControl(guiContainerRef.current)
+      }
+    })
     // Update status based on transaction state
 
   
@@ -1380,6 +1504,24 @@ const createStructurePreview = async (structure: SelectedStructure) => {
     }
 
   }, [isAcquiring, isConfirming, isConfirmed, error])
+
+  //isUpdating, isConfirming: updateStateConfirming, isConfirmed: isConfirmedUpdateState, error: errorUpdateState
+
+  useEffect(() => {
+    if(bottomPanelLogRef.current){
+      if (isUpdating) bottomPanelLogRef.current.text = "Sending transaction..."
+      if (updateStateConfirming) bottomPanelLogRef.current.text = "Confirming transaction..."
+      if (isConfirmedUpdateState) {
+        bottomPanelLogRef.current.text = "District acquired successfully!"
+        if (guiTextureRef.current && guiContainerRef.current){
+          guiTextureRef.current.removeControl(guiContainerRef.current)
+          inputTextRef.current = null;
+        }
+      }
+      if (errorUpdateState) bottomPanelLogRef.current.text = "Error: " + errorUpdateState.message
+    }
+
+  }, [isUpdating, updateStateConfirming, isConfirmed, errorUpdateState])
 
   // Initial update of available land
   useEffect(() => {

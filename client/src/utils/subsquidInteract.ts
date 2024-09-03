@@ -5,7 +5,7 @@ import { GET_ACQUIRED_DISTRICTS,GET_USER_DISTRICTS } from './query';
 export const fetchDistricts = async (client: ApolloClient<any>): Promise<Map<string, District>> => {
     const result = await client.query({ query: GET_ACQUIRED_DISTRICTS });
     const districtMap = new Map<string, District>();
-    result.data.districts.forEach((district: District) => {
+    result.data.districtAcquiredEvents.forEach((district: District) => {
       districtMap.set(`${district.x}_${district.y}`, district);
     });
     
@@ -16,9 +16,9 @@ export const fetchDistricts = async (client: ApolloClient<any>): Promise<Map<str
     const normalizedUserAddress = normalizeAddress(userAddress);
     const result = await client.query({ query: GET_ACQUIRED_DISTRICTS });
     const districtMap = new Map<string, District>();
-    result.data.districts.forEach((district: District) => {
+    result.data.districtAcquiredEvents.forEach((district: District) => {
         //district.owner = normalizeAddress(district.owner);
-        console.log(normalizeAddress(district.owner))
+        console.log("jgfdhewdfy",normalizeAddress(district.owner))
         if (normalizeAddress(district.owner) === normalizedUserAddress) {
             districtMap.set(`${district.x}_${district.y}`, district);
         }
