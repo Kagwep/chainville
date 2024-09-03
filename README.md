@@ -105,6 +105,13 @@ subsquid endpoint: https://92b4fce6-8879-4e64-9ae5-56c20f27f8ef.squids.live/tran
 
 By implementing these features, ChainVille aims to create a more engaging, complex, and realistic city-building experience that fully leverages the potential of blockchain technology.
 
+
+### Team
+
+- Peter Kagwe  => kagwepeter07@gmail.com 
+- Felix Awere    =>  felixawere01@gmail.com
+- Ted Adams      => ogolated00@gmail.com
+
 ## License
 
 Licensed under a standard agreement allowing personal, non-commercial use. For other uses, contact us for licensing options.
