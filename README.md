@@ -53,7 +53,7 @@ Get more points by building a virtual city.
 1. **User Interaction**: Players interact with the game through a front-end interface.
 2. **Smart Contract Execution**: User actions trigger smart contract functions (e.g., acquireDistrict, updateDistrictState).
 3. **Event Emission**: The smart contract emits events (e.g., DistrictAcquired, DistrictStateUpdated).
-4. **Event Indexing**: An indexer like Subsquid captures and processes these events.
+4. **Event Indexing**: An indexer - Subsquid captures and processes these events.
 5. **Database Storage**: Processed events are stored in a database for efficient querying.
 6. **Client State Update**: The front-end updates based on the latest blockchain state and indexed events.
 7. **Neighbor Awareness**: Players can observe and interact with neighboring districts.
