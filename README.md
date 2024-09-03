@@ -103,10 +103,6 @@ subsquid endpoint: https://92b4fce6-8879-4e64-9ae5-56c20f27f8ef.squids.live/tran
    - Introduce voting systems for city-wide decisions
 
 
-7. **Integration with DeFi**
-   - Implement yield-generating structures within the game
-   - Allow for staking and liquidity provision mechanics
-
 By implementing these features, ChainVille aims to create a more engaging, complex, and realistic city-building experience that fully leverages the potential of blockchain technology.
 
 ## License
