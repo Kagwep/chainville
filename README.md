@@ -44,7 +44,7 @@ Get more points by building a virtual city.
         |                      v                       v
 +----------------+     +-----------------+     +----------------+
 |                |     |                 |     |                |
-|  Client State  |<----|  State Changes  |     |   Database     |
+|  Client State  |<----|  State Changes  |<----|   Database     |
 |  Update        |     |                 |     |                |
 |                |     |                 |     |                |
 +----------------+     +-----------------+     +----------------+
@@ -101,7 +101,7 @@ subsquid endpoint: https://92b4fce6-8879-4e64-9ae5-56c20f27f8ef.squids.live/tran
 
 6. **Governance Mechanism**
    - Introduce voting systems for city-wide decisions
-   - Implement DAO-like structures for managing shared resources
+
 
 7. **Integration with DeFi**
    - Implement yield-generating structures within the game
@@ -110,12 +110,6 @@ subsquid endpoint: https://92b4fce6-8879-4e64-9ae5-56c20f27f8ef.squids.live/tran
 8. **Cross-Chain Compatibility**
    - Explore integration with other blockchain networks for increased interoperability
 
-9. **AI-Driven NPCs**
-   - Introduce AI-controlled districts for more dynamic gameplay
-   - Implement AI assistants to help with city management
-
-10. **Mobile Application**
-    - Develop a mobile version of the game for on-the-go city management
 
 By implementing these features, ChainVille aims to create a more engaging, complex, and realistic city-building experience that fully leverages the potential of blockchain technology.
 
