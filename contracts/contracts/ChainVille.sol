@@ -30,9 +30,8 @@ contract ChainVille is ERC721, Ownable {
     event InfrastructureBuilt(uint256 indexed tokenId, string infrastructureType); // Added
     event Withdrawal(address indexed owner, uint256 amount);
 
-    constructor(address initialOwner, address tokenAddress, uint256 _districtPrice) ERC721("ChainVille", "CV") Ownable(initialOwner) {
+    constructor(address initialOwner,uint256 _districtPrice) ERC721("ChainVille", "CV") Ownable(initialOwner) {
         _nextTokenId = 0;
-        gameToken = IERC20(tokenAddress); // added
         districtPrice = _districtPrice; // added
     }
 
@@ -48,9 +47,9 @@ contract ChainVille is ERC721, Ownable {
         emit InfrastructureBuilt(tokenId, infrastructureType);
     }
 
-    function acquireDistrict(uint256 x, uint256 y, string memory metadata_url, string memory district_name) public {
+    function acquireDistrict(uint256 x, uint256 y, string memory metadata_url, string memory district_name) public payable  {
         require(_coordinateToTokenId[x][y] == 0, "District already acquired");
-        require(gameToken.transferFrom(msg.sender, address(this), districtPrice), "Payment Failed"); // added
+        require(msg.value == districtPrice, "Incorrect payment amount");
         
         uint256 newTokenId = _nextTokenId++;
         _safeMint(msg.sender, newTokenId);
@@ -172,12 +171,9 @@ contract ChainVille is ERC721, Ownable {
     }
 
     // added withdraw 
-    function withdraw(uint256 amount, bool withdrawToken) public onlyOwner {
-        if (withdrawToken) {
-            require(gameToken.transfer(msg.sender, amount), "Token withdrawal failed");
-        } else {
+    function withdraw(uint256 amount) public onlyOwner {
+            require(amount <= address(this).balance, "Insufficient balance");
             payable(owner()).transfer(amount);
+            emit Withdrawal(owner(), amount);
         }
-        emit Withdrawal(msg.sender, amount);
-    }
 }
